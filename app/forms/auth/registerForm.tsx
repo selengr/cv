@@ -1,53 +1,33 @@
-import { Form, FormikProps, withFormik } from "formik";
-import Input from "../../components/shared/form/input";
+import {  withFormik } from "formik";
+import Router from "next/router";
+import * as yup from "yup";
 
-interface RegisterFormValues {
-    name: string,
-    email: string,
-    password: string
-}
+import InnerRegisterForm from "../../components/auth/innerRegisterForm";
+import { RegisterFormValuesInterface } from "../../contracts/auth";
+import callApi from "../../helpers/callApi";
 
-const InnerRegisterForm = (props : FormikProps<RegisterFormValues>) => {
-    return (
-        <Form className="space-y-6">
-            <div>
-                <Input name='name' label="Your name"/>
-            </div>
 
-            <div>
-                <Input name='email' type='email' label="Email Address"/>
-            </div>
-
-            <div>
-                <Input name='password' type='password' label="Password"/>
-            </div>
-
-            <div>
-                <button
-                    type="submit"
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    Register
-                </button>
-            </div>
-        </Form>
-    )
-}
+const registerFormValidationSchema = yup.object().shape({
+    name : yup.string().required().min(4),
+    email : yup.string().required().email(),
+    password : yup.string().required().min(8)
+})
 
 interface RegisterFormProps {
-    name? : string
 }
 
-const RegisterForm = withFormik<RegisterFormProps , RegisterFormValues>({
-    mapPropsToValues : props => {
-        return {
-            name : props.name ?? '',
-            email : '',
-            password : ''
+const RegisterForm = withFormik<RegisterFormProps , RegisterFormValuesInterface>({
+    mapPropsToValues : props => ({
+        name : '',
+        email : '',
+        password : ''
+    }),
+    validationSchema: registerFormValidationSchema,
+    handleSubmit : async (values) => {
+        const res = await callApi().post('/auth/register' , values);
+        if(res.status === 201) {
+            Router.push('/auth/login')
         }
-    },
-    handleSubmit : (values) => {
-        console.log(values);
     }
 })(InnerRegisterForm)
 
