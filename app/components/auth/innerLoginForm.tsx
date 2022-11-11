@@ -6,11 +6,7 @@ const InnerLoginForm = (props : FormikProps<LoginFormValuesInterface>) => {
     return (
         <Form className="space-y-6">
             <div>
-                <Input name='email' type='email' label="Email Address"/>
-            </div>
-
-            <div>
-                <Input name='password' type='password' label="Password"/>
+                <Input name='phone' label="Phone Number"/>
             </div>
 
             <div>
