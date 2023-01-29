@@ -1,12 +1,10 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}",
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
   ],
-
   theme: {
-    extend: {},
+    // Ensure these match with .storybook/preview.js
     screens: {
       xs: '375px',
       sm: '600px',
@@ -14,6 +12,20 @@ module.exports = {
       lg: '1200px',
       xl: '1536px',
     },
+    fontFamily: {
+      sans: ['Arial', 'sans-serif'],
+      serif: ['Garamond', 'serif'],
+    },
+    extend: {
+      colors: {
+        blue: {
+          500: '#1a73e8',
+        },
+      },
+      spacing: {
+        128: '32rem',
+      },
+    },
   },
   plugins: [],
-}
+};

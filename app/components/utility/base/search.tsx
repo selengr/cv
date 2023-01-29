@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useRouter } from 'next/router'
 
 export interface ISearch { }
 
@@ -6,14 +7,21 @@ export interface ISearch { }
 const Search: React.FC<ISearch> = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>();
+  const router = useRouter()
 
+ const applyReq  = () => {
+  // e.preventDefault();
+      router.push({
+        pathname: '/post/[pid]',
+        query: { search: searchTerm },
+      })
+  }
 
   return (
     <form className="flex flex-col items-center gap-y-5"
-      onSubmit={(e) => {
-        e.preventDefault();
-        alert(`Action requested. Search for term: ${searchTerm}`);
-      }}
+      onSubmit={
+        applyReq
+      }
     >
       <input
         type="text"
