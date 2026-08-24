@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family:
+    Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
+    Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  direction: rtl;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
