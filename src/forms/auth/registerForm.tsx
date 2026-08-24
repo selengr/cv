@@ -2,13 +2,15 @@
 
 import { withFormik } from "formik";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import * as yup from "yup";
 import InnerRegisterForm from "@/components/auth/innerRegisterForm";
 import { RegisterFormValuesInterface } from "@/contracts/auth";
-import ValidationError from "@/exceptions/validationError";
+import ValidationError, {
+  applyFieldErrors,
+} from "@/exceptions/validationError";
 import callApi from "@/helpers/callApi";
-
-const phoneRegExp = /^(0|0098|\+98)9(0[1-5]|[13]\d|2[0-2]|98)\d{7}$/;
+import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 
 interface RegisterFormProps {
   router: ReturnType<typeof useRouter>;
@@ -23,25 +25,33 @@ const FormikRegisterForm = withFormik<
     phone: "",
   }),
   validationSchema: yup.object({
-    name: yup.string().required("نام الزامی است").min(4).max(255),
+    name: yup.string().required("نام را بنویس").min(2, "نام کوتاه است").max(255),
     phone: yup
       .string()
-      .required("شماره موبایل الزامی است")
-      .min(8)
-      .matches(phoneRegExp, "فرمت شماره موبایل صحیح نیست"),
+      .required("شماره موبایل را بنویس")
+      .matches(iranianPhoneRegExp, "این شماره درست به نظر نمی‌رسد"),
   }),
   handleSubmit: async (values, { setFieldError, props }) => {
     try {
-      const res = await callApi().post("/auth/register", values);
-      if (res.status === 201) {
+      const res = await callApi().post("/auth/register", {
+        name: values.name.trim(),
+        phone: normalizeIranianPhone(values.phone),
+      });
+
+      if (res.status === 200 || res.status === 201) {
+        toast.success("حساب ساخته شد. حالا وارد شو");
         props.router.push("/auth/login");
+        return;
       }
+
+      toast.error("ثبت‌نام کامل نشد");
     } catch (error) {
       if (error instanceof ValidationError) {
-        Object.entries(error.messages).forEach(([key, value]) =>
-          setFieldError(key, value),
-        );
+        applyFieldErrors(error.messages, setFieldError);
+        return;
       }
+
+      toast.error("ثبت‌نام انجام نشد. یک بار دیگر امتحان کن");
     }
   },
 })(InnerRegisterForm);
