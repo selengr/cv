@@ -1,12 +1,9 @@
 "use client";
 
-import { Form, type FormikProps } from "formik";
-import { PhoneVerifyFormValuesInterface } from "@/contracts/auth";
+import { Form } from "formik";
 import Input from "@/components/shared/form/input";
 
-export default function InnerPhoneVerify(
-  _props: FormikProps<PhoneVerifyFormValuesInterface>,
-) {
+export default function InnerPhoneVerify() {
   return (
     <Form className="space-y-6">
       <div>

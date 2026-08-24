@@ -1,12 +1,10 @@
 "use client";
 
-import { Form, type FormikProps } from "formik";
+import { Form } from "formik";
 import { LoginFormValuesInterface } from "@/contracts/auth";
 import Input from "@/components/shared/form/input";
 
-export default function InnerLoginForm(
-  _props: FormikProps<LoginFormValuesInterface>,
-) {
+export default function InnerLoginForm() {
   return (
     <Form className="space-y-6">
       <div>

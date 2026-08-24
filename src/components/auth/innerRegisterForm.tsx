@@ -1,12 +1,9 @@
 "use client";
 
-import { Form, type FormikProps } from "formik";
-import { RegisterFormValuesInterface } from "@/contracts/auth";
+import { Form } from "formik";
 import Input from "@/components/shared/form/input";
 
-export default function InnerRegisterForm(
-  _props: FormikProps<RegisterFormValuesInterface>,
-) {
+export default function InnerRegisterForm() {
   return (
     <Form className="space-y-6">
       <div>

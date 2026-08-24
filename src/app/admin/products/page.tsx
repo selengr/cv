@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
@@ -14,20 +14,15 @@ import { selectUser } from "@/store/auth";
 import Product from "@/models/product";
 
 function ProductListPage() {
-  const [page, setPage] = useState(1);
   const user = useAppSelector(selectUser);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const page = Number(searchParams.get("page") ?? 1) || 1;
   const { data, error, mutate } = useSWR(
     { url: "/admin/products", page },
     GetProducts,
   );
   const loadingProducts = !data && !error;
-
-  useEffect(() => {
-    const queryPage = Number(searchParams.get("page") ?? 1);
-    setPage(Number.isNaN(queryPage) ? 1 : queryPage);
-  }, [searchParams]);
 
   const onPageChangeHandler = ({ selected }: { selected: number }) =>
     router.push(`/admin/products?page=${selected + 1}`);
