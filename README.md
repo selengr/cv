@@ -2,7 +2,7 @@
 
 Phone-first shop admin for small stores. GitHub repo name: **`shopy`** (rename the current `cv` repository).
 
-This started in 2022 as a Next.js 12 learning project: Iranian mobile OTP login, a seller panel, and an admin catalog with role checks. The default Next.js homepage was never replaced, the GitHub name (`cv`) did not match the product (`shopy`), and there was an unfinished abacus experiment.
+This started in 2022 as a Next.js 12 learning project: Iranian mobile OTP login, a seller panel, and an admin catalog with role checks. The default Next.js homepage was never replaced, and the GitHub name (`cv`) did not match the product (`shopy`).
 
 ## What it is now
 
@@ -25,8 +25,6 @@ Treat Shopy as a **commerce OS for small shops**, in this order:
 3. **Customers** — finish the users page, roles, staff invites
 4. **Storefront** — a public shop that reads the same catalog
 5. **Ops** — Telegram/WhatsApp order alerts, PWA, dark mode
-
-The `/abacus` route is an old experiment. Leave it out of the product unless you turn it into a shop tool (pricing calculator, inventory counter).
 
 ## Rename the GitHub repo
 
