@@ -1,16 +1,16 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family:
-    Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
-    Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  direction: rtl;
-  background: #f8fafc;
-  color: #0f172a;
+  background: #f4efe6;
+  color: #14110e;
 }
 
 a {
@@ -20,4 +20,30 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+.landing-hero-glow {
+  background:
+    radial-gradient(ellipse 70% 50% at 80% 10%, rgba(31, 74, 69, 0.14), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 80%, rgba(201, 162, 39, 0.12), transparent 50%);
+}
+
+.landing-preview {
+  transform: perspective(1400px) rotateY(6deg) rotateX(3deg);
+}
+
+@media (max-width: 1023px) {
+  .landing-preview {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .landing-preview {
+    transform: none;
+  }
 }
