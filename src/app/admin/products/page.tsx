@@ -13,7 +13,10 @@ import { useAppSelector } from "@/hooks";
 import { selectUser } from "@/store/auth";
 import Product from "@/models/product";
 
-export default function ProductListPage() {
+import { Suspense } from "react";
+import LoadingBox from "@/components/shared/loadingBox";
+
+function ProductListPage() {
   const [page, setPage] = useState(1);
   const user = useAppSelector(selectUser);
   const router = useRouter();
