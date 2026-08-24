@@ -9,6 +9,10 @@ interface InputProps {
   inputClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  autoComplete?: string;
+  inputMode?: "text" | "tel" | "numeric" | "email";
+  dir?: "rtl" | "ltr";
+  placeholder?: string;
 }
 
 export default function Input({
@@ -18,6 +22,10 @@ export default function Input({
   inputClassName,
   labelClassName,
   errorClassName,
+  autoComplete,
+  inputMode,
+  dir,
+  placeholder,
 }: InputProps) {
   return (
     <>
@@ -31,7 +39,11 @@ export default function Input({
         id={name}
         name={name}
         type={type}
-        className={`mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm ${inputClassName ?? ""}`}
+        autoComplete={autoComplete}
+        inputMode={inputMode}
+        dir={dir}
+        placeholder={placeholder}
+        className={`mt-1 block w-full appearance-none rounded-xl border border-gray-300 bg-white px-3 py-2.5 placeholder-gray-400 shadow-sm focus:border-[#1f4a45] focus:ring-[#1f4a45] focus:outline-none sm:text-sm ${inputClassName ?? ""}`}
       />
       <ErrorMessage
         name={name}
