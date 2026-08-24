@@ -1,46 +1,33 @@
 # Shopy
 
-Phone-first shop admin for small stores. GitHub repo name: **`shopy`** (rename the current `cv` repository).
+Admin panel for a small shop. Login with an Iranian phone number, manage products, that's basically it.
 
-This started in 2022 as a Next.js 12 learning project: Iranian mobile OTP login, a seller panel, and an admin catalog with role checks. The default Next.js homepage was never replaced, and the GitHub name (`cv`) did not match the product (`shopy`).
-
-## What it is now
-
-Shopy is the store back office, not a public storefront.
-
-- Register / login with an Iranian mobile number and SMS code
-- Seller account panel
-- Admin dashboard with permission-based product CRUD
-- RTL Persian UI
-- Talks to a separate API (`NEXT_PUBLIC_API_URL`, default `http://localhost:5000/api`)
-
-The 2026 rewrite keeps that product and moves it onto Next.js 16 App Router, React 19, Tailwind 4, Redux Toolkit 2, SWR 2, Axios 1, and Headless UI 2.
-
-## How to develop it from here
-
-Treat Shopy as a **commerce OS for small shops**, in this order:
-
-1. **Catalog** — categories from the API, product images, stock, search
-2. **Orders** — incoming orders, status, invoices
-3. **Customers** — finish the users page, roles, staff invites
-4. **Storefront** — a public shop that reads the same catalog
-5. **Ops** — Telegram/WhatsApp order alerts, PWA, dark mode
-
-## Rename the GitHub repo
+This repo used to be called `cv` which is confusing. The app name is Shopy. Rename it on GitHub if you haven't yet:
 
 ```bash
-# GitHub website: Settings → General → Repository name → shopy
-# or:
 gh repo rename shopy
 ```
 
-Then update the local remote if GitHub prints a new URL:
+I started this around 2022 with Next.js 12. It sat for a while. I updated the stack (Next 16, React 19, Tailwind 4) and kept the same idea.
 
-```bash
-git remote set-url origin https://github.com/selengr/shopy.git
+## What it does
+
+- sign up / login with phone + SMS code
+- seller panel
+- admin can add, edit, delete products (depends on permissions)
+- UI is RTL / Persian
+
+There is no public storefront. This is only the back office.
+
+It talks to a separate API. Default is `http://localhost:5000/api`. You can change that in `.env.local`:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-## Setup
+If the API isn't running, login and product pages won't work.
+
+## Run it
 
 ```bash
 cp .env.example .env.local
@@ -48,4 +35,13 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The API must be running for login, the panel, and product pages.
+Then open http://localhost:3000
+
+## Later
+
+Stuff I still want to add, whenever I get to it:
+
+- product images, categories, stock
+- orders
+- the users page is empty, needs real work
+- maybe a public shop later
