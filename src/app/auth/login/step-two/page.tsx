@@ -13,20 +13,20 @@ const emptySubscribe = () => () => undefined;
 export default function PhoneVerifyPage() {
   const router = useRouter();
   const reduxToken = useAppSelector(selectPhoneVerifyToken);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const storedToken = useSyncExternalStore(
     emptySubscribe,
     readPhoneVerifyToken,
     () => null,
   );
-  const token = reduxToken || storedToken || undefined;
+  const token = reduxToken || (mounted ? storedToken : undefined) || undefined;
 
   useEffect(() => {
-    if (!token) {
-      router.replace("/auth/login");
-    }
-  }, [router, token]);
+    if (!mounted) return;
+    if (!token) router.replace("/auth/login");
+  }, [mounted, router, token]);
 
-  if (!token) {
+  if (!mounted || !token) {
     return (
       <p className="py-16 text-center text-sm text-[#6b6459]">در حال آماده‌سازی...</p>
     );
