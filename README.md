@@ -1,34 +1,53 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Shopy
 
-## Getting Started
+Phone-first shop admin for small stores. GitHub repo name: **`shopy`** (rename the current `cv` repository).
 
-First, run the development server:
+This started in 2022 as a Next.js 12 learning project: Iranian mobile OTP login, a seller panel, and an admin catalog with role checks. The default Next.js homepage was never replaced, the GitHub name (`cv`) did not match the product (`shopy`), and there was an unfinished abacus experiment.
+
+## What it is now
+
+Shopy is the store back office, not a public storefront.
+
+- Register / login with an Iranian mobile number and SMS code
+- Seller account panel
+- Admin dashboard with permission-based product CRUD
+- RTL Persian UI
+- Talks to a separate API (`NEXT_PUBLIC_API_URL`, default `http://localhost:5000/api`)
+
+The 2026 rewrite keeps that product and moves it onto Next.js 16 App Router, React 19, Tailwind 4, Redux Toolkit 2, SWR 2, Axios 1, and Headless UI 2.
+
+## How to develop it from here
+
+Treat Shopy as a **commerce OS for small shops**, in this order:
+
+1. **Catalog** — categories from the API, product images, stock, search
+2. **Orders** — incoming orders, status, invoices
+3. **Customers** — finish the users page, roles, staff invites
+4. **Storefront** — a public shop that reads the same catalog
+5. **Ops** — Telegram/WhatsApp order alerts, PWA, dark mode
+
+The `/abacus` route is an old experiment. Leave it out of the product unless you turn it into a shop tool (pricing calculator, inventory counter).
+
+## Rename the GitHub repo
 
 ```bash
-npm run dev
-# or
-yarn dev
+# GitHub website: Settings → General → Repository name → shopy
+# or:
+gh repo rename shopy
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then update the local remote if GitHub prints a new URL:
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```bash
+git remote set-url origin https://github.com/selengr/shopy.git
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Setup
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```bash
+cp .env.example .env.local
+npm install
+npm run dev
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Open [http://localhost:3000](http://localhost:3000). The API must be running for login, the panel, and product pages.

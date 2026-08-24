@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
@@ -12,9 +12,6 @@ import { GetProducts } from "@/services/product";
 import { useAppSelector } from "@/hooks";
 import { selectUser } from "@/store/auth";
 import Product from "@/models/product";
-
-import { Suspense } from "react";
-import LoadingBox from "@/components/shared/loadingBox";
 
 function ProductListPage() {
   const [page, setPage] = useState(1);
@@ -118,5 +115,19 @@ function ProductListPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductListPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-5">
+          <LoadingBox />
+        </div>
+      }
+    >
+      <ProductListPage />
+    </Suspense>
   );
 }
