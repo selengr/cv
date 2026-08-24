@@ -11,7 +11,10 @@ import type { UserType } from "@/models/user";
 const fetchCurrentUser = async () => {
   try {
     const res = await callApi().get("/user");
-    return (res.data?.user ?? null) as UserType | null;
+    const payload = res.data;
+    if (payload?.user) return payload.user as UserType;
+    if (payload?.id && payload?.name) return payload as UserType;
+    return null;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       return null;
