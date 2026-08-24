@@ -28,9 +28,10 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
       setShowDeleteConfirmation(false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        Object.entries(error.messages).forEach(([, value]) =>
-          toast.error(value),
-        );
+        Object.entries(error.messages).forEach(([, value]) => {
+          const message = Array.isArray(value) ? value[0] : value;
+          if (message) toast.error(String(message));
+        });
         return;
       }
 
