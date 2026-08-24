@@ -7,7 +7,9 @@ import * as yup from "yup";
 import type { KeyedMutator } from "swr";
 import InnerProductForm from "@/components/admin/products/innerProductForm";
 import { CreateProductInterface } from "@/contracts/admin/products";
-import ValidationError from "@/exceptions/validationError";
+import ValidationError, {
+  applyFieldErrors,
+} from "@/exceptions/validationError";
 import Product from "@/models/product";
 import { UpdateProduct } from "@/services/product";
 
@@ -42,9 +44,7 @@ const FormikEditProductForm = withFormik<ProductFormProps, CreateProductInterfac
         toast.success("محصول مورد نظر با موفقیت ویرایش شد");
       } catch (error) {
         if (error instanceof ValidationError) {
-          Object.entries(error.messages).forEach(([key, value]) =>
-            setFieldError(key, value),
-          );
+          applyFieldErrors(error.messages, setFieldError);
           return;
         }
 

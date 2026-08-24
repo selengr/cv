@@ -6,7 +6,9 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import InnerProductForm from "@/components/admin/products/innerProductForm";
 import { CreateProductInterface } from "@/contracts/admin/products";
-import ValidationError from "@/exceptions/validationError";
+import ValidationError, {
+  applyFieldErrors,
+} from "@/exceptions/validationError";
 import { CreateProduct } from "@/services/product";
 
 interface CreateFormProps {
@@ -35,12 +37,10 @@ const FormikCreateProductForm = withFormik<
       props.router.push("/admin/products");
       toast.success("محصول مورد نظر با موفقیت ثبت شد");
     } catch (error) {
-      if (error instanceof ValidationError) {
-        Object.entries(error.messages).forEach(([key, value]) =>
-          setFieldError(key, value),
-        );
-        return;
-      }
+        if (error instanceof ValidationError) {
+          applyFieldErrors(error.messages, setFieldError);
+          return;
+        }
 
       toast.error("متاسفانه مشکلی در ثبت محصول وجود دارد.");
     }
