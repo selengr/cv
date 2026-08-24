@@ -2,25 +2,49 @@
 
 import { useEffect } from "react";
 import useSWR from "swr";
+import axios from "axios";
 import callApi from "@/helpers/callApi";
 import { useAppDispatch } from "@/hooks";
 import { updateUser } from "@/store/auth";
 import type { UserType } from "@/models/user";
 
 const fetchCurrentUser = async () => {
-  const res = await callApi().get("/user");
-  return res.data?.user as UserType | undefined;
+  try {
+    const res = await callApi().get("/user");
+    return (res.data?.user ?? null) as UserType | null;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      return null;
+    }
+    throw error;
+  }
 };
 
 const useAuth = () => {
   const dispatch = useAppDispatch();
-  const { data, error, isLoading } = useSWR("user_me", fetchCurrentUser);
+  const { data, error, isLoading, isValidating, mutate } = useSWR(
+    "user_me",
+    fetchCurrentUser,
+    {
+      shouldRetryOnError: false,
+      revalidateOnFocus: false,
+      dedupingInterval: 4000,
+    },
+  );
+
+  const user = data ?? undefined;
 
   useEffect(() => {
-    dispatch(updateUser(data));
-  }, [data, dispatch]);
+    dispatch(updateUser(user));
+  }, [dispatch, user]);
 
-  return { user: data, error, loading: isLoading };
+  return {
+    user,
+    error,
+    loading: isLoading || (isValidating && data === undefined),
+    authenticated: Boolean(user),
+    mutate,
+  };
 };
 
 export default useAuth;

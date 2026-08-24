@@ -20,7 +20,9 @@ export default function GuestLayout({ children }: Props) {
   }, [loading, router, user]);
 
   if (user) {
-    return <div className="p-8 text-center text-sm text-gray-500">در حال انتقال...</div>;
+    return (
+      <div className="p-8 text-center text-sm text-[#6b6459]">در حال انتقال به پنل...</div>
+    );
   }
 
   return <div className="w-full">{children}</div>;

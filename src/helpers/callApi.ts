@@ -3,7 +3,7 @@ import ValidationError from "@/exceptions/validationError";
 
 const callApi = () => {
   const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api",
+    baseURL: "/api/backend",
     withCredentials: true,
   });
 
@@ -12,7 +12,7 @@ const callApi = () => {
     (err) => {
       const res = err?.response;
       if (res?.status === 422) {
-        throw new ValidationError(res.data.errors);
+        throw new ValidationError(res.data?.errors ?? {});
       }
 
       throw err;

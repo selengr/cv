@@ -11,16 +11,21 @@ interface Props {
 
 export default function UserPanelLayout({ children }: Props) {
   const router = useRouter();
-  const { error, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && error) {
+    if (!loading && !user) {
       router.replace("/auth/login");
     }
-  }, [error, loading, router]);
+  }, [loading, router, user]);
 
-  if (loading) return <h1 className="p-8 text-lg">Loading ...</h1>;
-  if (error) return <span className="p-8 text-sm">در حال انتقال...</span>;
+  if (loading) {
+    return <div className="p-8 text-sm text-[#6b6459]">در حال بررسی ورود...</div>;
+  }
+
+  if (!user) {
+    return <div className="p-8 text-sm text-[#6b6459]">در حال انتقال...</div>;
+  }
 
   return <div className="w-full">{children}</div>;
 }

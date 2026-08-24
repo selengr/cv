@@ -8,7 +8,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import useAuth from "@/hooks/useAuth";
 import SidebarLayout from "@/components/admin/layouts/sidebarLayout";
 import User from "@/models/user";
-import { removeLoginToken } from "@/helpers/auth";
+import useLogout from "@/hooks/useLogout";
 import { classNames } from "@/helpers/classNames";
 
 interface Props {
@@ -21,12 +21,13 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
   const { user: userData, error, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = new User(userData);
+  const logout = useLogout();
 
   useEffect(() => {
-    if (!loading && error) {
+    if (!loading && !userData) {
       router.replace("/auth/login");
     }
-  }, [error, loading, router]);
+  }, [loading, router, userData]);
 
   useEffect(() => {
     if (!loading && permissions && userData && !new User(userData).canAccess(permissions)) {

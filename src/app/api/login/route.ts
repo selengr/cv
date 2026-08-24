@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookieOptions } from "@/helpers/auth";
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as { token?: string };
-  const response = NextResponse.json({ status: "success" });
+  let token = "";
 
-  response.cookies.set("shopy_token", body.token ?? "", {
-    httpOnly: true,
-    maxAge: 60 * 60 * 24,
-    sameSite: "lax",
-    path: "/",
+  try {
+    const body = (await request.json()) as { token?: string };
+    token = body.token ?? "";
+  } catch {
+    token = "";
+  }
+
+  if (!token) {
+    return NextResponse.json({ status: "error" }, { status: 400 });
+  }
+
+  const response = NextResponse.json({ status: "success" });
+  response.cookies.set("shopy_token", token, {
+    ...cookieOptions,
+    maxAge: 60 * 60 * 24 * 7,
   });
 
   return response;
