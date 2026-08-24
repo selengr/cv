@@ -29,10 +29,10 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
   }, [error, loading, router]);
 
   useEffect(() => {
-    if (!loading && permissions && userData && !user.canAccess(permissions)) {
+    if (!loading && permissions && userData && !new User(userData).canAccess(permissions)) {
       router.replace("/admin");
     }
-  }, [loading, permissions, router, user, userData]);
+  }, [loading, permissions, router, userData]);
 
   const logoutHandler = async () => {
     await removeLoginToken();

@@ -1,7 +1,9 @@
+import PermissionGuard from "@/components/permissionGuard";
 import CreateProductForm from "@/forms/admin/product/createProductForm";
 
 export default function ProductCreatePage() {
   return (
+    <PermissionGuard permission="add_new_product">
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
@@ -18,5 +20,6 @@ export default function ProductCreatePage() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

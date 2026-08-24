@@ -11,7 +11,11 @@ interface Props {
 
 export default function Modal({ children, setShow, show = true }: Props) {
   return (
-    <Dialog open={show} onClose={setShow} className="relative z-20">
+    <Dialog
+      open={show}
+      onClose={() => (setShow as (value: boolean) => void)(false)}
+      className="relative z-20"
+    >
       <DialogBackdrop className="fixed inset-0 bg-black/40" />
       <div className="fixed inset-0 overflow-y-auto text-center">
         <span className="inline-block h-screen align-middle">&#8203;</span>
