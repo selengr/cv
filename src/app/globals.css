@@ -29,7 +29,7 @@ a {
 }
 
 .landing-preview {
-  transform: perspective(1400px) rotateY(6deg) rotateX(3deg);
+  transform: perspective(1400px) rotateY(-8deg) rotateX(4deg);
 }
 
 @media (max-width: 1023px) {
