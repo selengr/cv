@@ -3,23 +3,22 @@ import Link from "next/link";
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          ثبت‌نام در Shopy
-        </h2>
+    <>
+      <h1 className="text-center text-3xl font-bold tracking-tight text-[#14110e]">
+        ثبت‌نام
+      </h1>
+      <p className="mt-2 text-center text-sm text-[#6b6459]">
+        اسم و شماره موبایل کافی است
+      </p>
+      <div className="mt-8 rounded-3xl border border-[#14110e]/8 bg-white/80 px-5 py-8 shadow-sm sm:px-8">
+        <RegisterForm />
+        <p className="mt-6 text-center text-sm text-[#6b6459]">
+          قبلا حساب ساختی؟{" "}
+          <Link href="/auth/login" className="font-medium text-[#1f4a45]">
+            ورود
+          </Link>
+        </p>
       </div>
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">
-          <RegisterForm />
-          <p className="mt-6 text-center text-sm text-gray-600">
-            قبلا ثبت‌نام کرده‌اید؟{" "}
-            <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              ورود
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
