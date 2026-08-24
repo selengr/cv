@@ -11,37 +11,34 @@ import ValidationError from "@/exceptions/validationError";
 import Product from "@/models/product";
 import { UpdateProduct } from "@/services/product";
 
-const validationSchema = yup.object({
-  title: yup.string().required("عنوان الزامی است").min(4).max(255),
-  category_id: yup.number().required("دسته‌بندی الزامی است"),
-  price: yup.number().min(0),
-  description: yup.string().required("توضیحات الزامی است").min(4).max(6000),
-});
-
 interface ProductFormProps {
   product: Product;
   mutateProducts?: KeyedMutator<{
     products: Product[];
     total_page: number;
   }>;
+  router: ReturnType<typeof useRouter>;
 }
 
-function EditProductFormWithRouter(
-  props: ProductFormProps & { router: ReturnType<typeof useRouter> },
-) {
-  const Form = withFormik<typeof props, CreateProductInterface>({
+const FormikEditProductForm = withFormik<ProductFormProps, CreateProductInterface>(
+  {
     mapPropsToValues: ({ product }) => ({
       title: product.title,
       category_id: product.category ?? "",
       price: product.price,
       description: product.body,
     }),
-    validationSchema,
-    handleSubmit: async (values, { props: formProps, setFieldError }) => {
+    validationSchema: yup.object({
+      title: yup.string().required("عنوان الزامی است").min(4).max(255),
+      category_id: yup.number().required("دسته‌بندی الزامی است"),
+      price: yup.number().min(0),
+      description: yup.string().required("توضیحات الزامی است").min(4).max(6000),
+    }),
+    handleSubmit: async (values, { props, setFieldError }) => {
       try {
-        await UpdateProduct(formProps.product.id, values);
-        await formProps.mutateProducts?.();
-        formProps.router.push("/admin/products");
+        await UpdateProduct(props.product.id, values);
+        await props.mutateProducts?.();
+        props.router.push("/admin/products");
         toast.success("محصول مورد نظر با موفقیت ویرایش شد");
       } catch (error) {
         if (error instanceof ValidationError) {
@@ -54,12 +51,12 @@ function EditProductFormWithRouter(
         toast.error("متاسفانه مشکلی در ویرایش محصول وجود دارد.");
       }
     },
-  })(InnerProductForm);
+  },
+)(InnerProductForm);
 
-  return <Form {...props} />;
-}
-
-export default function EditProductForm(props: ProductFormProps) {
+export default function EditProductForm(
+  props: Omit<ProductFormProps, "router">,
+) {
   const router = useRouter();
-  return <EditProductFormWithRouter {...props} router={router} />;
+  return <FormikEditProductForm {...props} router={router} />;
 }

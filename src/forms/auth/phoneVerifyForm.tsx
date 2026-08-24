@@ -9,50 +9,58 @@ import ValidationError from "@/exceptions/validationError";
 import { storeLoginToken } from "@/helpers/auth";
 import callApi from "@/helpers/callApi";
 
-const phoneVerifyFormValidationSchema = yup.object({
-  code: yup
-    .string()
-    .required("کد تایید الزامی است")
-    .matches(/^[0-9]+$/, "فقط می‌توانید عدد وارد کنید")
-    .length(6, "کد تایید باید ۶ رقم باشد"),
-});
-
 interface PhoneVerifyFormProps {
   token?: string;
   clearToken: () => void;
+  router: ReturnType<typeof useRouter>;
 }
 
-function PhoneVerifyFormWithRouter(
-  props: PhoneVerifyFormProps & { router: ReturnType<typeof useRouter> },
-) {
-  const Form = withFormik<typeof props, PhoneVerifyFormValuesInterface>({
-    mapPropsToValues: (formProps) => ({
-      code: "",
-      token: formProps.token || "",
-    }),
-    validationSchema: phoneVerifyFormValidationSchema,
-    handleSubmit: async (values, { props: formProps, setFieldError }) => {
-      try {
-        const res = await callApi().post("/auth/login/verify-phone", values);
-        if (res.status === 200) {
-          await storeLoginToken(res.data?.user?.token);
-          formProps.clearToken();
-          formProps.router.push("/panel");
-        }
-      } catch (error) {
-        if (error instanceof ValidationError) {
-          Object.entries(error.messages).forEach(([key, value]) =>
-            setFieldError(key, value),
-          );
-        }
+const FormikPhoneVerifyForm = withFormik<
+  PhoneVerifyFormProps,
+  PhoneVerifyFormValuesInterface
+>({
+  mapPropsToValues: (props) => ({
+    code: "",
+    token: props.token || "",
+  }),
+  validationSchema: yup.object({
+    code: yup
+      .string()
+      .required("کد تایید الزامی است")
+      .matches(/^[0-9]+$/, "فقط می‌توانید عدد وارد کنید")
+      .length(6, "کد تایید باید ۶ رقم باشد"),
+  }),
+  handleSubmit: async (values, { props, setFieldError }) => {
+    try {
+      const res = await callApi().post("/auth/login/verify-phone", values);
+      if (res.status === 200) {
+        await storeLoginToken(res.data?.user?.token);
+        props.clearToken();
+        props.router.push("/panel");
       }
-    },
-  })(InnerPhoneVerify);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        Object.entries(error.messages).forEach(([key, value]) =>
+          setFieldError(key, value),
+        );
+      }
+    }
+  },
+})(InnerPhoneVerify);
 
-  return <Form {...props} />;
-}
-
-export default function PhoneVerifyForm(props: PhoneVerifyFormProps) {
+export default function PhoneVerifyForm({
+  token,
+  clearToken,
+}: {
+  token?: string;
+  clearToken: () => void;
+}) {
   const router = useRouter();
-  return <PhoneVerifyFormWithRouter {...props} router={router} />;
+  return (
+    <FormikPhoneVerifyForm
+      token={token}
+      clearToken={clearToken}
+      router={router}
+    />
+  );
 }
