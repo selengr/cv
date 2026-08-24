@@ -1,22 +1,30 @@
 "use client";
 
-import { Form } from "formik";
+import { Form, type FormikProps } from "formik";
 import Input from "@/components/shared/form/input";
+import Spinner from "@/components/icons/spinner";
 
-export default function InnerPhoneVerify() {
+export default function InnerPhoneVerify({
+  isSubmitting,
+}: FormikProps<{ code: string; token: string }>) {
   return (
-    <Form className="space-y-6">
-      <div>
-        <Input name="code" label="کد تایید" />
-      </div>
-      <div>
-        <button
-          type="submit"
-          className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-        >
-          تایید
-        </button>
-      </div>
+    <Form className="space-y-5">
+      <Input
+        name="code"
+        label="کد تایید"
+        autoComplete="one-time-code"
+        inputMode="numeric"
+        dir="ltr"
+        placeholder="123456"
+      />
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="flex w-full items-center justify-center rounded-full bg-[#1f4a45] px-4 py-2.5 text-sm text-white hover:bg-[#173833] disabled:opacity-60"
+      >
+        {isSubmitting && <Spinner className="ml-2 h-4 w-4" />}
+        {isSubmitting ? "در حال تایید..." : "ورود به پنل"}
+      </button>
     </Form>
   );
 }

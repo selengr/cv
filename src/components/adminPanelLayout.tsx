@@ -18,7 +18,7 @@ interface Props {
 
 export default function AdminPanelLayout({ children, permissions }: Props) {
   const router = useRouter();
-  const { user: userData, error, loading } = useAuth();
+  const { user: userData, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = new User(userData);
   const logout = useLogout();
