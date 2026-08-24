@@ -36,12 +36,11 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
   }, [loading, permissions, router, userData]);
 
   const logoutHandler = async () => {
-    await removeLoginToken();
-    router.push("/auth/login");
+    await logout();
   };
 
-  if (loading) return <h1 className="p-8 text-lg">Loading ...</h1>;
-  if (error) return <span className="p-8 text-sm">در حال انتقال...</span>;
+  if (loading) return <div className="p-8 text-sm text-[#6b6459]">در حال بررسی ورود...</div>;
+  if (!userData) return <div className="p-8 text-sm text-[#6b6459]">در حال انتقال...</div>;
   if (permissions && !user.canAccess(permissions)) {
     return <span className="p-8 text-sm">loading ...</span>;
   }
