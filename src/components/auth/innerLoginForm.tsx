@@ -1,7 +1,6 @@
 "use client";
 
 import { Form } from "formik";
-import { LoginFormValuesInterface } from "@/contracts/auth";
 import Input from "@/components/shared/form/input";
 
 export default function InnerLoginForm() {
