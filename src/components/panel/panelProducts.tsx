@@ -36,7 +36,18 @@ export default function PanelProducts() {
         محصولات نمونه به‌علاوه هر چیزی که خودت اضافه کرده باشی.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <label className="mt-6 block">
+        <span className="sr-only">جستجو</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="جستجو در نام یا توضیح"
+          className="w-full rounded-2xl border border-[#14110e]/10 bg-white px-4 py-2.5 text-sm focus:border-[#1f4a45] focus:ring-[#1f4a45] sm:max-w-sm"
+        />
+      </label>
+
+      <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setCategory("")}

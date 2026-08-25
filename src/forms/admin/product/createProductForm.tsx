@@ -24,12 +24,16 @@ const FormikCreateProductForm = withFormik<
     category_id: "",
     price: 0,
     description: "",
+    stock: 1,
+    emoji: "📦",
   }),
   validationSchema: yup.object({
     title: yup.string().required("عنوان الزامی است").min(4).max(255),
-    category_id: yup.number().required("دسته‌بندی الزامی است"),
+    category_id: yup.string().required("دسته‌بندی الزامی است"),
     price: yup.number().min(0),
     description: yup.string().required("توضیحات الزامی است").min(4).max(6000),
+    stock: yup.number().min(0).required("موجودی الزامی است"),
+    emoji: yup.string().required(),
   }),
   handleSubmit: async (values, { props, setFieldError }) => {
     try {

@@ -6,6 +6,7 @@ import { CreateProductInterface } from "@/contracts/admin/products";
 import Input from "@/components/shared/form/input";
 import SelectBox from "@/components/shared/form/selectbox";
 import Textarea from "@/components/shared/form/textarea";
+import { PRODUCT_EMOJIS, categorySelectOptions } from "@/helpers/catalog";
 import Product from "@/models/product";
 
 type ProductFormProps = FormikProps<CreateProductInterface> & {
@@ -24,16 +25,25 @@ export default function InnerProductForm(props: ProductFormProps) {
         <div className="sm:col-span-2">
           <SelectBox
             name="category_id"
-            label="دسته بندی"
-            options={[
-              { label: "لطفا یکی از دسته بندی ها را انتخاب کنید", value: "" },
-              { label: "جاوااسکریپت", value: 1 },
-              { label: "php", value: 2 },
-            ]}
+            label="دسته‌بندی"
+            options={categorySelectOptions}
           />
         </div>
         <div className="sm:col-span-2">
-          <Input name="price" type="number" label="قیمت محصول" />
+          <Input name="price" type="number" label="قیمت (تومان)" />
+        </div>
+        <div className="sm:col-span-1">
+          <Input name="stock" type="number" label="موجودی" />
+        </div>
+        <div className="sm:col-span-1">
+          <SelectBox
+            name="emoji"
+            label="شکلک"
+            options={PRODUCT_EMOJIS.map((emoji) => ({
+              label: emoji,
+              value: emoji,
+            }))}
+          />
         </div>
         <div className="sm:col-span-4">
           <Textarea
@@ -44,17 +54,17 @@ export default function InnerProductForm(props: ProductFormProps) {
         </div>
       </div>
 
-      <div className="flex items-center border-t border-gray-200 bg-gray-50 p-6 py-4">
+      <div className="flex items-center border-t border-[#14110e]/8 bg-[#f4efe6]/70 p-6 py-4">
         <button
           type="submit"
-          className="ml-2 inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm leading-4 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          className="ml-2 inline-flex items-center rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
         >
           {props.product ? "ثبت تغییرات" : "ایجاد محصول"}
         </button>
         <button
           onClick={() => router.push("/admin/products")}
           type="button"
-          className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm leading-4 font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          className="inline-flex items-center rounded-full border border-[#14110e]/12 bg-white px-4 py-2 text-sm"
         >
           انصراف
         </button>
