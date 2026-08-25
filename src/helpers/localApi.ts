@@ -148,6 +148,17 @@ export function handleLocalRequest(
     return ok(config, { user: { ...user, token: sessionToken } });
   }
 
+  if (method === "GET" && path === "/users") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, {
+      users: getUsers().map((user) => ({
+        ...publicUser(user),
+        phone: user.phone,
+      })),
+    });
+  }
+
   if (method === "GET" && path === "/user") {
     const session = getSession();
     if (!session) {
@@ -193,6 +204,8 @@ export function handleLocalRequest(
       price: Number(body.price ?? 0),
       user_id: session.user.id,
       created_at: new Date().toISOString(),
+      stock: Number(body.stock ?? 1),
+      emoji: String(body.emoji ?? "📦"),
     };
     saveProducts([product, ...products]);
     return ok(config, { product }, 201);
