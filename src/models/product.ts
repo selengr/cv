@@ -6,4 +6,6 @@ export default interface Product {
   price: number;
   user_id: number;
   created_at: string;
+  stock?: number;
+  emoji?: string;
 }
