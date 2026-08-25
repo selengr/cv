@@ -53,10 +53,19 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
         )}
       </td>
       <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
-        {product.id}
+        {product.emoji ?? "📦"} {product.id}
+      </td>
+      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-900">
+        {product.title}
       </td>
       <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-        {product.title}
+        {categoryLabel(product.category)}
+      </td>
+      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+        {formatToman(product.price)}
+      </td>
+      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+        {(product.stock ?? 0).toLocaleString("fa-IR")}
       </td>
       <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
         <Link

@@ -73,6 +73,24 @@ function ProductListPage() {
                       </th>
                       <th
                         scope="col"
+                        className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900"
+                      >
+                        دسته
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900"
+                      >
+                        قیمت
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900"
+                      >
+                        موجودی
+                      </th>
+                      <th
+                        scope="col"
                         className="relative py-3.5 pr-4 pl-3 sm:pr-6"
                       />
                     </tr>
