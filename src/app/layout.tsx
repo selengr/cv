@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Vazirmatn } from "next/font/google";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
+import "@fontsource-variable/estedad/wght.css";
 import Providers from "./providers";
 import "./globals.css";
 
-const vazirmatn = Vazirmatn({
+const plex = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
-  variable: "--font-vazirmatn",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex",
   display: "swap",
 });
 
@@ -20,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
-      <body className={`${vazirmatn.className} antialiased`}>
+    <html lang="fa" dir="rtl" className={plex.variable}>
+      <body className={`${plex.className} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>
