@@ -17,3 +17,20 @@ export const categorySelectOptions = [
   { label: "لطفا یکی از دسته‌ها را انتخاب کنید", value: "" },
   ...CATEGORIES.map((item) => ({ label: item.label, value: item.value })),
 ];
+
+export const PRODUCT_EMOJIS = [
+  "👟",
+  "👜",
+  "👕",
+  "👖",
+  "🧢",
+  "⌚",
+  "🎒",
+  "☕",
+  "👗",
+  "🧣",
+  "💍",
+  "🧴",
+  "🏠",
+  "📦",
+];

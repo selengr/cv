@@ -151,6 +151,9 @@ export function handleLocalRequest(
   if (method === "GET" && path === "/users") {
     const session = getSession();
     if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    if (!session.user.permissions?.includes("manage_users")) {
+      throw fail(config, 403, { message: "forbidden" });
+    }
     return ok(config, {
       users: getUsers().map((user) => ({
         ...publicUser(user),
@@ -225,6 +228,8 @@ export function handleLocalRequest(
       category: String(body.category ?? body.category_id ?? products[index].category),
       body: String(body.body ?? body.description ?? products[index].body),
       price: Number(body.price ?? products[index].price),
+      stock: Number(body.stock ?? products[index].stock ?? 0),
+      emoji: String(body.emoji ?? products[index].emoji ?? "📦"),
     };
     saveProducts(products);
     return ok(config, { product: products[index] });

@@ -3,4 +3,6 @@ export interface CreateProductInterface {
   category_id: string;
   price: number;
   description: string;
+  stock: number;
+  emoji: string;
 }

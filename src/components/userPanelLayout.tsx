@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import useAuth from "@/hooks/useAuth";
+import PanelShell from "@/components/panel/panelShell";
 
 interface Props {
   children: ReactNode;
@@ -27,5 +28,5 @@ export default function UserPanelLayout({ children }: Props) {
     return <div className="p-8 text-sm text-[#6b6459]">در حال انتقال...</div>;
   }
 
-  return <div className="w-full">{children}</div>;
+  return <PanelShell>{children}</PanelShell>;
 }
