@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function PhoneDemo() {
@@ -96,12 +97,12 @@ export default function PhoneDemo() {
             <p className="mt-2 text-sm leading-7 text-[#5c564d]">
               بعد از کد، می‌روی داخل پنل. محصول اضافه می‌کنی و کار تمام است.
             </p>
-            <a
+            <Link
               href="/auth/register"
               className="mt-4 inline-flex rounded-full bg-[#1f4a45] px-5 py-2.5 text-sm text-white"
             >
               حساب واقعی بساز
-            </a>
+            </Link>
             <button
               type="button"
               onClick={() => {

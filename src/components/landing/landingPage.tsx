@@ -118,7 +118,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            <div className="mt-14 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+            <div id="demo" className="mt-14 grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr]">
               <TiltFrame>
                 <DashboardPreview />
               </TiltFrame>
@@ -196,7 +196,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="demo" className="mx-auto max-w-6xl px-5 pt-2 pb-20 sm:px-8">
+        <section className="mx-auto max-w-6xl px-5 pt-2 pb-20 sm:px-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
