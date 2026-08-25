@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
 
+@theme {
+  --font-display: "Estedad Variable", var(--font-plex), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-sans: var(--font-plex), "Estedad Variable", ui-sans-serif, system-ui,
+    sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -11,6 +18,15 @@ body {
   margin: 0;
   background: #f4efe6;
   color: #14110e;
+  line-height: 1.8;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  line-height: 1.35;
 }
 
 a {
@@ -24,26 +40,20 @@ a {
 
 .landing-hero-glow {
   background:
-    radial-gradient(ellipse 70% 50% at 80% 10%, rgba(31, 74, 69, 0.14), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 10% 80%, rgba(201, 162, 39, 0.12), transparent 50%);
+    radial-gradient(ellipse 60% 45% at 85% 8%, rgba(31, 74, 69, 0.16), transparent 55%),
+    radial-gradient(ellipse 45% 40% at 8% 85%, rgba(201, 162, 39, 0.14), transparent 50%);
 }
 
-.landing-preview {
-  transform: perspective(1400px) rotateY(-8deg) rotateX(4deg);
-}
-
-@media (max-width: 1023px) {
-  .landing-preview {
-    transform: none;
-  }
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(20, 17, 14, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 17, 14, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 40%, transparent 75%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  .landing-preview {
-    transform: none;
   }
 }
