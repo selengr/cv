@@ -34,8 +34,12 @@ const FormikLoginForm = withFormik<LoginFormProps, LoginFormValuesInterface>({
       });
 
       const token = res.data?.token;
+      const debugCode = res.data?.debug_code as string | undefined;
       if ((res.status === 200 || res.status === 201) && token) {
         props.setToken(token);
+        if (debugCode) {
+          toast.info(`کد تایید: ${debugCode}`);
+        }
         props.router.push("/auth/login/step-two");
         return;
       }

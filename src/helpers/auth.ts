@@ -1,3 +1,5 @@
+import { clearOtpHint, clearSession } from "@/helpers/localDb";
+
 export const iranianPhoneRegExp = /^(?:0|98|\+98|0098)?9\d{9}$/;
 
 export function normalizeIranianPhone(phone: string) {
@@ -24,7 +26,7 @@ export function clearPhoneVerifyTokenStorage() {
   sessionStorage.removeItem(PHONE_VERIFY_KEY);
 }
 
-import { clearOtpHint, clearSession } from "@/helpers/localDb";
+const cookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
   path: "/",
@@ -51,6 +53,10 @@ export const storeLoginToken = async (token: string) => {
 };
 
 export const removeLoginToken = async () => {
+  clearSession();
+  clearOtpHint();
+  clearPhoneVerifyTokenStorage();
+
   await fetch("/api/logout", {
     method: "POST",
     headers: {
