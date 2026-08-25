@@ -14,6 +14,7 @@ import {
   clearPhoneVerifyTokenStorage,
   storeLoginToken,
 } from "@/helpers/auth";
+import { clearOtpHint } from "@/helpers/localDb";
 import callApi from "@/helpers/callApi";
 
 interface PhoneVerifyFormProps {
@@ -56,6 +57,7 @@ const FormikPhoneVerifyForm = withFormik<
       if (res.status === 200 && loginToken) {
         await storeLoginToken(loginToken);
         clearPhoneVerifyTokenStorage();
+        clearOtpHint();
         await mutate("user_me", user, { revalidate: true });
         props.router.replace("/panel");
         return;

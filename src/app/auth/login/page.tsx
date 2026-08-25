@@ -20,7 +20,10 @@ export default function LoginPage() {
         ورود
       </h1>
       <p className="mt-2 text-center text-sm text-[#6b6459]">
-        شماره موبایل را بزن، کد تایید برایت می‌آید
+        شماره موبایل را بزن. کد روی صفحه بعد نشان داده می‌شود.
+      </p>
+      <p className="mt-2 text-center text-xs text-[#1f4a45]">
+        برای تست: 09121111111
       </p>
       <div className="mt-8 rounded-3xl border border-[#14110e]/8 bg-white/80 px-5 py-8 shadow-sm sm:px-8">
         <LoginForm setToken={setPhoneVerifyToken} />
