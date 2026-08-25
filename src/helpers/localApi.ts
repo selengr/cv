@@ -21,11 +21,11 @@ import {
 } from "@/helpers/localDb";
 
 function pathOf(config: InternalAxiosRequestConfig) {
-  const raw = `${config.baseURL ?? ""}${config.url ?? ""}`;
-  const url = new URL(raw, "http://local.invalid");
+  const raw = config.url ?? "";
+  const [pathname, query] = raw.split("?");
   return {
-    path: url.pathname.replace(/^\/api\/backend/, "") || "/",
-    search: url.searchParams,
+    path: pathname || "/",
+    search: new URLSearchParams(query ?? ""),
   };
 }
 
