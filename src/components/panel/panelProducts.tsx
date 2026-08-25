@@ -11,19 +11,23 @@ import type Product from "@/models/product";
 
 export default function PanelProducts() {
   const [category, setCategory] = useState("");
+  const [query, setQuery] = useState("");
   const { data, error } = useSWR(
     { url: "/panel/products-all", page: 1, per_page: 50 },
     GetProducts,
   );
   const loading = !data && !error;
   const products: Product[] = data?.products ?? [];
-  const filtered = useMemo(
-    () =>
-      category
-        ? products.filter((item) => item.category === category)
-        : products,
-    [category, products],
-  );
+  const filtered = useMemo(() => {
+    const needle = query.trim();
+    return products.filter((item) => {
+      const inCategory = category ? item.category === category : true;
+      const inSearch = needle
+        ? `${item.title} ${item.body}`.includes(needle)
+        : true;
+      return inCategory && inSearch;
+    });
+  }, [category, products, query]);
 
   return (
     <div>

@@ -24,6 +24,7 @@ export default function PanelHome() {
     (sum, item) => sum + item.price * (item.stock ?? 0),
     0,
   );
+  const lowStock = products.filter((item) => (item.stock ?? 0) <= 5);
 
   return (
     <div>
@@ -68,6 +69,27 @@ export default function PanelHome() {
           {products.slice(0, 4).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
+        </div>
+      )}
+
+      {lowStock.length > 0 && (
+        <div className="mt-10 rounded-3xl border border-amber-200 bg-amber-50/80 p-5">
+          <h2 className="font-display text-lg font-semibold">موجودی کم</h2>
+          <p className="mt-1 text-sm text-[#5c564d]">
+            این‌ها پنج تا یا کمتر مانده‌اند.
+          </p>
+          <ul className="mt-3 space-y-2 text-sm">
+            {lowStock.map((item) => (
+              <li key={item.id} className="flex items-center justify-between">
+                <span>
+                  {item.emoji ?? "📦"} {item.title}
+                </span>
+                <span className="text-amber-800">
+                  {(item.stock ?? 0).toLocaleString("fa-IR")} عدد
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
