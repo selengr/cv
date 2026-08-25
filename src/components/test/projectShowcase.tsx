@@ -21,6 +21,7 @@ import DeleteConfirmation from "@/components/shared/deleteConfirmation";
 import ReactCustomPaginate from "@/components/shared/reactCustomPaginate";
 import ActiveLink from "@/components/shared/activeLink";
 import ProductListItem from "@/components/admin/products/productListItem";
+import ProductCard from "@/components/panel/productCard";
 import UserInfo from "@/components/panel/userInfo";
 import CreateProductForm from "@/forms/admin/product/createProductForm";
 import type Product from "@/models/product";
@@ -38,12 +39,14 @@ const sections = [
 
 const sampleProduct: Product = {
   id: 99,
-  title: "محصول نمایشی",
-  category: "1",
-  body: "برای تست لیست",
-  price: 250000,
+  title: "کفش اسپرت سفید",
+  category: "2",
+  body: "کفش روزمره برای تست کارت و لیست",
+  price: 1280000,
   user_id: 1,
   created_at: new Date().toISOString(),
+  stock: 12,
+  emoji: "👟",
 };
 
 function Block({
@@ -296,6 +299,11 @@ export default function ProjectShowcase() {
 
         <section id="admin" className="space-y-4">
           <h2 className="font-display text-2xl font-semibold">ادمین</h2>
+          <Block title="ProductCard" hint="کارت محصول در پنل">
+            <div className="max-w-xs">
+              <ProductCard product={sampleProduct} />
+            </div>
+          </Block>
           <Block title="ProductListItem">
             <table className="min-w-full divide-y divide-gray-200 overflow-hidden rounded-xl bg-white">
               <tbody>

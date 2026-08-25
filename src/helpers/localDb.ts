@@ -2,7 +2,7 @@ import type { UserType } from "@/models/user";
 import type Product from "@/models/product";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "3";
+const DATA_VERSION = "4";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const SESSION_KEY = "shopy_session";
