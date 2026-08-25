@@ -19,7 +19,7 @@ function ProductListPage() {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? 1) || 1;
   const { data, error, mutate } = useSWR(
-    { url: "/admin/products", page },
+    { url: "/admin/products", page, per_page: 20 },
     GetProducts,
   );
   const loadingProducts = !data && !error;
