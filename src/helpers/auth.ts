@@ -24,7 +24,7 @@ export function clearPhoneVerifyTokenStorage() {
   sessionStorage.removeItem(PHONE_VERIFY_KEY);
 }
 
-const cookieOptions = {
+import { clearOtpHint, clearSession } from "@/helpers/localDb";
   httpOnly: true,
   sameSite: "lax" as const,
   path: "/",
