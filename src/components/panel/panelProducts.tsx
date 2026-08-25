@@ -17,8 +17,8 @@ export default function PanelProducts() {
     GetProducts,
   );
   const loading = !data && !error;
-  const products: Product[] = data?.products ?? [];
   const filtered = useMemo(() => {
+    const products: Product[] = data?.products ?? [];
     const needle = query.trim();
     return products.filter((item) => {
       const inCategory = category ? item.category === category : true;
@@ -27,7 +27,7 @@ export default function PanelProducts() {
         : true;
       return inCategory && inSearch;
     });
-  }, [category, products, query]);
+  }, [category, data?.products, query]);
 
   return (
     <div>
