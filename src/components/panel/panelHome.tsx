@@ -14,7 +14,7 @@ export default function PanelHome() {
   const { user } = useAuth();
   const access = new User(user);
   const { data, error } = useSWR(
-    { url: "/panel/products", page: 1, per_page: 8 },
+    { url: "/panel/products", page: 1, per_page: 50 },
     GetProducts,
   );
   const products: Product[] = data?.products ?? [];

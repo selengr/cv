@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { categoryLabel, formatToman } from "@/helpers/catalog";
+import useAuth from "@/hooks/useAuth";
+import User from "@/models/user";
 import type Product from "@/models/product";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const { user } = useAuth();
+  const canEdit = new User(user).canAccess("manage_products");
   const stock = product.stock ?? 0;
 
   return (
@@ -23,12 +29,14 @@ export default function ProductCard({ product }: { product: Product }) {
           موجودی {stock.toLocaleString("fa-IR")}
         </span>
       </div>
-      <Link
-        href={`/admin/products/${product.id}/edit`}
-        className="mt-3 text-left text-xs text-[#1f4a45]"
-      >
-        ویرایش
-      </Link>
+      {canEdit && (
+        <Link
+          href={`/admin/products/${product.id}/edit`}
+          className="mt-3 text-left text-xs text-[#1f4a45]"
+        >
+          ویرایش
+        </Link>
+      )}
     </article>
   );
 }
