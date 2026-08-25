@@ -222,7 +222,12 @@ export default function LandingPage() {
       <footer className="border-t border-[#14110e]/8">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 py-8 sm:flex-row sm:items-center sm:px-8">
           <Logo />
-          <p className="text-sm text-[#6b6459]">پنل ادمین فروشگاه · ۲۰۲۶</p>
+          <div className="flex items-center gap-4 text-sm text-[#6b6459]">
+            <p>پنل ادمین فروشگاه · ۲۰۲۶</p>
+            <Link href="/test" className="text-[#1f4a45] hover:underline">
+              نمایش اجزا
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

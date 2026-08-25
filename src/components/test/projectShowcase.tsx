@@ -120,7 +120,9 @@ export default function ProjectShowcase() {
               >
                 <p className="font-display font-semibold">{item.title}</p>
                 <p className="mt-1 text-sm text-[#6b6459]">{item.body}</p>
-                <p className="mt-2 dir-ltr text-left text-xs text-[#1f4a45]">{item.href}</p>
+                <p dir="ltr" className="mt-2 text-left text-xs text-[#1f4a45]">
+                  {item.href}
+                </p>
               </Link>
             ))}
           </div>
