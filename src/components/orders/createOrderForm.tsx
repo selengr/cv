@@ -147,15 +147,20 @@ export default function CreateOrderForm() {
                 type="button"
                 onClick={() => addProduct(product)}
                 disabled={stock < 1}
-                className="flex items-center justify-between rounded-2xl border border-[#14110e]/8 bg-white px-4 py-3 text-right text-sm disabled:opacity-40"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-[#14110e]/8 bg-white px-3 py-2 text-right text-sm disabled:opacity-40"
               >
-                <span>
-                  {product.emoji ?? "📦"} {product.title}
-                  {line && (
-                    <span className="mr-2 text-[#1f4a45]">
-                      × {line.qty.toLocaleString("fa-IR")}
-                    </span>
-                  )}
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="inline-block w-12 shrink-0">
+                    <ProductThumb item={product} className="h-12" compact />
+                  </span>
+                  <span className="truncate">
+                    {product.title}
+                    {line && (
+                      <span className="mr-2 text-[#1f4a45]">
+                        × {line.qty.toLocaleString("fa-IR")}
+                      </span>
+                    )}
+                  </span>
                 </span>
                 <span className="text-xs text-[#6b6459]">{formatToman(product.price)}</span>
               </button>

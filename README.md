@@ -43,7 +43,6 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- product images
 - invoices / print
 - user role editor
 - maybe a public shop later
