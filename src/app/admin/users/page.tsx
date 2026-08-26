@@ -7,7 +7,7 @@ export default function UsersPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold">کاربران</h1>
         <p className="mt-2 text-sm text-[#5c564d]">
-          حساب‌هایی که در همین مرورگر ثبت شده‌اند. ادمین دمو: ۰۹۱۲۱۱۱۱۱۱۱
+          نقش را عوض کن. ادمین دمو: ۰۹۱۲۱۱۱۱۱۱۱ — حداقل یک ادمین باید بماند.
         </p>
         <div className="mt-6">
           <UsersList />
