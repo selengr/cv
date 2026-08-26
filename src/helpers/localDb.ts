@@ -1,10 +1,12 @@
 import type { UserType } from "@/models/user";
 import type Product from "@/models/product";
+import type Order from "@/models/order";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "4";
+const DATA_VERSION = "5";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
+const ORDERS_KEY = "shopy_orders";
 const SESSION_KEY = "shopy_session";
 const OTP_KEY = "shopy_otp";
 export const OTP_HINT_KEY = "shopy_otp_hint";
