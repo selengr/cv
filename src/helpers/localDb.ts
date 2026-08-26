@@ -88,7 +88,7 @@ function seedProducts(): Product[] {
       price: 2450000,
       user_id: 1,
       created_at: new Date().toISOString(),
-      stock: 4,
+      stock: 3,
       emoji: "👜",
     },
     {
@@ -99,7 +99,7 @@ function seedProducts(): Product[] {
       price: 320000,
       user_id: 1,
       created_at: new Date().toISOString(),
-      stock: 28,
+      stock: 25,
       emoji: "👕",
     },
     {
@@ -110,7 +110,7 @@ function seedProducts(): Product[] {
       price: 890000,
       user_id: 1,
       created_at: new Date().toISOString(),
-      stock: 9,
+      stock: 8,
       emoji: "👖",
     },
     {
@@ -121,7 +121,7 @@ function seedProducts(): Product[] {
       price: 180000,
       user_id: 1,
       created_at: new Date().toISOString(),
-      stock: 16,
+      stock: 15,
       emoji: "🧢",
     },
     {
@@ -143,7 +143,7 @@ function seedProducts(): Product[] {
       price: 980000,
       user_id: 1,
       created_at: new Date().toISOString(),
-      stock: 7,
+      stock: 6,
       emoji: "🎒",
     },
     {
