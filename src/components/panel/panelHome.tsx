@@ -66,36 +66,40 @@ export default function PanelHome() {
         </div>
       </div>
 
-      <div className="mt-10 flex items-center justify-between">
-        <h2 className="font-display text-xl font-semibold">آخرین سفارش‌ها</h2>
-        <Link href="/panel/orders" className="text-sm text-[#1f4a45]">
-          همه سفارش‌ها
-        </Link>
-      </div>
-      <div className="mt-4 overflow-hidden rounded-3xl border border-[#14110e]/8 bg-white/85 shadow-sm">
-        {(orders ?? []).slice(0, 4).map((order, index) => (
-          <Link
-            key={order.id}
-            href={`/panel/orders/${order.id}`}
-            className={`flex items-center justify-between px-4 py-3 ${
-              index !== Math.min((orders ?? []).length, 4) - 1
-                ? "border-b border-[#14110e]/8"
-                : ""
-            }`}
-          >
-            <div>
-              <p className="text-sm font-medium">
-                #{order.id} · {order.customerName}
-              </p>
-              <p className="text-xs text-[#6b6459]">{formatDay(order.created_at)}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="hidden text-sm sm:inline">{formatToman(order.total)}</span>
-              <OrderStatusBadge status={order.status} />
-            </div>
-          </Link>
-        ))}
-      </div>
+      {orders && orders.length > 0 && (
+        <>
+          <div className="mt-10 flex items-center justify-between">
+            <h2 className="font-display text-xl font-semibold">آخرین سفارش‌ها</h2>
+            <Link href="/panel/orders" className="text-sm text-[#1f4a45]">
+              همه سفارش‌ها
+            </Link>
+          </div>
+          <div className="mt-4 overflow-hidden rounded-3xl border border-[#14110e]/8 bg-white/85 shadow-sm">
+            {orders.slice(0, 4).map((order, index) => (
+              <Link
+                key={order.id}
+                href={`/panel/orders/${order.id}`}
+                className={`flex items-center justify-between px-4 py-3 ${
+                  index !== Math.min(orders.length, 4) - 1
+                    ? "border-b border-[#14110e]/8"
+                    : ""
+                }`}
+              >
+                <div>
+                  <p className="text-sm font-medium">
+                    #{order.id} · {order.customerName}
+                  </p>
+                  <p className="text-xs text-[#6b6459]">{formatDay(order.created_at)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="hidden text-sm sm:inline">{formatToman(order.total)}</span>
+                  <OrderStatusBadge status={order.status} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="mt-10 flex items-center justify-between">
         <h2 className="font-display text-xl font-semibold">نمونه‌ها</h2>
