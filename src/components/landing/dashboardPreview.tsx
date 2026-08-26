@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 
+const products = [
+  { id: "1042", title: "کفش اسپرت سفید", price: "۱٬۲۸۰٬۰۰۰", stock: "۱۲" },
+  { id: "1041", title: "کیف چرم دستی", price: "۲٬۴۵۰٬۰۰۰", stock: "۴" },
+  { id: "1040", title: "تیشرت نخی", price: "۳۲۰٬۰۰۰", stock: "۲۸" },
+];
+
 const orders = [
   { id: "1048", name: "نگار احمدی", total: "۱٬۴۶۰٬۰۰۰", status: "در انتظار" },
   { id: "1047", name: "حسین مرادی", total: "۶۴۰٬۰۰۰", status: "پرداخت‌شده" },
@@ -11,7 +17,7 @@ const orders = [
 const tabs = ["داشبورد", "سفارش‌ها", "محصولات", "کاربران"] as const;
 
 export default function DashboardPreview() {
-  const [tab, setTab] = useState<(typeof tabs)[number]>("محصولات");
+  const [tab, setTab] = useState<(typeof tabs)[number]>("سفارش‌ها");
   const [activeId, setActiveId] = useState("1042");
 
   return (
