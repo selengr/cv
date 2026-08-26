@@ -29,11 +29,23 @@ export function readCart(): CartLine[] {
 export function writeCart(lines: CartLine[]) {
   if (!canUseStorage()) return;
   localStorage.setItem(CART_KEY, JSON.stringify(lines));
+  window.dispatchEvent(new Event("shopy-cart"));
 }
 
 export function clearCart() {
   if (!canUseStorage()) return;
   localStorage.removeItem(CART_KEY);
+  window.dispatchEvent(new Event("shopy-cart"));
+}
+
+export function subscribeCart(onStoreChange: () => void) {
+  if (!canUseStorage()) return () => undefined;
+  window.addEventListener("shopy-cart", onStoreChange);
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    window.removeEventListener("shopy-cart", onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
 }
 
 export function addToCart(product: Product, qty = 1): CartLine[] {
