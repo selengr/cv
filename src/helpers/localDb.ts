@@ -163,6 +163,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 18,
       emoji: "☕",
+      image: "/products/mug.jpg",
     },
   ];
 }
