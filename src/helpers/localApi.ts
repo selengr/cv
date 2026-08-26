@@ -213,6 +213,7 @@ export function handleLocalRequest(
       created_at: new Date().toISOString(),
       stock: Number(body.stock ?? 1),
       emoji: String(body.emoji ?? "📦"),
+      image: String(body.image ?? "").trim() || undefined,
     };
     saveProducts([product, ...products]);
     return ok(config, { product }, 201);
