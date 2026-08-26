@@ -4,6 +4,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import {
   FolderIcon,
   HomeIcon,
+  ShoppingBagIcon,
   UsersIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -21,6 +22,12 @@ export default function SidebarLayout({ open, setOpen }: Props) {
 
   const navigation = [
     { name: "داشبورد", href: "/admin", icon: HomeIcon, enabled: true },
+    {
+      name: "سفارش‌ها",
+      href: "/admin/orders",
+      icon: ShoppingBagIcon,
+      enabled: true,
+    },
     {
       name: "محصولات",
       href: "/admin/products",
