@@ -110,10 +110,10 @@ export default function LandingPage() {
                   ساخت حساب
                 </Link>
                 <Link
-                  href="#demo"
+                  href="/shop"
                   className="rounded-full border border-[#14110e]/12 bg-white/80 px-6 py-3 text-sm transition hover:bg-white"
                 >
-                  اول ببین چطور کار می‌کند
+                  برو به فروشگاه
                 </Link>
               </div>
             </motion.div>
