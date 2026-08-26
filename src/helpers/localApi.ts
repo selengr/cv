@@ -301,6 +301,10 @@ export function handleLocalRequest(
     return ok(config, { status: "success" });
   }
 
+  if (method === "GET" && path === "/shop/products") {
+    return ok(config, { products: getProducts() });
+  }
+
   if (method === "GET" && path === "/orders") {
     const session = getSession();
     if (!session) throw fail(config, 401, { message: "unauthenticated" });
@@ -317,9 +321,11 @@ export function handleLocalRequest(
     return ok(config, { order });
   }
 
-  if (method === "POST" && path === "/orders") {
+  if (method === "POST" && (path === "/orders" || path === "/shop/orders")) {
     const session = getSession();
-    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    if (path === "/orders" && !session) {
+      throw fail(config, 401, { message: "unauthenticated" });
+    }
 
     const customerName = String(body.customerName ?? "").trim();
     const customerPhone = normalizeIranianPhone(String(body.customerPhone ?? ""));
