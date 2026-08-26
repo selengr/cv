@@ -17,7 +17,7 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - catalog: products, photos, categories, stock
 - orders: status flow, manual orders, printable invoice
 - admin can manage products and user roles
-- public shop: browse, cart, guest checkout
+- public shop: browse, search, cart, guest checkout
 - UI is RTL / Persian
 
 By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen. Public shop is at `/shop`.
@@ -43,4 +43,4 @@ Then open http://localhost:3000
 Stuff I still want to add, whenever I get to it:
 
 - payments
-- better product search on the public shop
+- order tracking for customers
