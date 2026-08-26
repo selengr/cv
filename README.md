@@ -16,7 +16,7 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - seller panel
 - catalog: products, photos, categories, stock
 - orders: status flow, manual orders, printable invoice
-- admin can add, edit, delete products (depends on permissions)
+- admin can manage products and user roles
 - UI is RTL / Persian
 
 There is no public storefront. This is only the back office.
@@ -43,5 +43,4 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- user role editor
 - maybe a public shop later
