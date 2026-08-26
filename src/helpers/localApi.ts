@@ -1,6 +1,8 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { normalizeIranianPhone } from "@/helpers/auth";
+import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
+import { nextStatuses } from "@/helpers/orders";
+import type { OrderItem, OrderStatus } from "@/models/order";
 import {
   ADMIN_PERMISSIONS,
   clearPendingOtp,
@@ -244,6 +246,113 @@ export function handleLocalRequest(
     const id = Number(deleteMatch[1]);
     saveProducts(getProducts().filter((item) => item.id !== id));
     return ok(config, { status: "success" });
+  }
+
+  if (method === "GET" && path === "/orders") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { orders: getOrders() });
+  }
+
+  const orderMatch = path.match(/^\/orders\/(\d+)$/);
+  if (method === "GET" && orderMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(orderMatch[1]);
+    const order = getOrders().find((item) => item.id === id);
+    if (!order) throw fail(config, 404, { message: "not found" });
+    return ok(config, { order });
+  }
+
+  if (method === "POST" && path === "/orders") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+
+    const customerName = String(body.customerName ?? "").trim();
+    const customerPhone = normalizeIranianPhone(String(body.customerPhone ?? ""));
+    const rawItems = Array.isArray(body.items) ? body.items : [];
+
+    if (customerName.length < 2) {
+      throw fail(config, 422, { errors: { customerName: "نام مشتری را بنویس" } });
+    }
+    if (!iranianPhoneRegExp.test(customerPhone)) {
+      throw fail(config, 422, { errors: { customerPhone: "شماره درست نیست" } });
+    }
+    if (rawItems.length === 0) {
+      throw fail(config, 422, { errors: { items: "حداقل یک محصول لازم است" } });
+    }
+
+    const products = getProducts();
+    const items: OrderItem[] = [];
+    for (const raw of rawItems) {
+      const row = raw as { productId?: number; qty?: number };
+      const product = products.find((item) => item.id === Number(row.productId));
+      const qty = Number(row.qty ?? 0);
+      if (!product || qty < 1) {
+        throw fail(config, 422, { errors: { items: "محصول یا تعداد درست نیست" } });
+      }
+      if ((product.stock ?? 0) < qty) {
+        throw fail(config, 422, {
+          errors: { items: `موجودی «${product.title}» کافی نیست` },
+        });
+      }
+      items.push({
+        productId: product.id,
+        title: product.title,
+        emoji: product.emoji ?? "📦",
+        price: product.price,
+        qty,
+      });
+    }
+
+    const nextProducts = products.map((product) => {
+      const taken = items.find((item) => item.productId === product.id);
+      if (!taken) return product;
+      return { ...product, stock: (product.stock ?? 0) - taken.qty };
+    });
+    saveProducts(nextProducts);
+
+    const orders = getOrders();
+    const order = {
+      id: nextId(orders),
+      customerName,
+      customerPhone,
+      items,
+      total: items.reduce((sum, item) => sum + item.price * item.qty, 0),
+      status: "pending" as OrderStatus,
+      note: String(body.note ?? "").trim() || undefined,
+      created_at: new Date().toISOString(),
+    };
+    saveOrders([order, ...orders]);
+    return ok(config, { order }, 201);
+  }
+
+  const statusMatch = path.match(/^\/orders\/(\d+)\/status$/);
+  if (method === "POST" && statusMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(statusMatch[1]);
+    const next = String(body.status ?? "") as OrderStatus;
+    const orders = getOrders();
+    const index = orders.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = orders[index];
+    if (!nextStatuses(current.status).includes(next)) {
+      throw fail(config, 422, { errors: { status: "این وضعیت مجاز نیست" } });
+    }
+
+    if (next === "cancelled") {
+      const products = getProducts().map((product) => {
+        const restored = current.items.find((item) => item.productId === product.id);
+        if (!restored) return product;
+        return { ...product, stock: (product.stock ?? 0) + restored.qty };
+      });
+      saveProducts(products);
+    }
+
+    orders[index] = { ...current, status: next };
+    saveOrders(orders);
+    return ok(config, { order: orders[index] });
   }
 
   if (method === "POST" && path === "/auth/logout") {
