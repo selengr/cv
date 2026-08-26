@@ -8,6 +8,7 @@ import { GetProducts } from "@/services/product";
 import { CreateOrder } from "@/services/order";
 import LoadingBox from "@/components/shared/loadingBox";
 import { formatToman } from "@/helpers/catalog";
+import ProductThumb from "@/components/shared/productThumb";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";

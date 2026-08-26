@@ -14,7 +14,7 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 
 - sign up / login with phone + SMS code
 - seller panel
-- catalog: products, categories, stock
+- catalog: products, photos, categories, stock
 - orders: status flow and manual orders
 - admin can add, edit, delete products (depends on permissions)
 - UI is RTL / Persian

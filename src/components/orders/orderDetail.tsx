@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { GetSingleOrder, UpdateOrderStatus } from "@/services/order";
 import LoadingBox from "@/components/shared/loadingBox";
 import OrderStatusBadge from "@/components/orders/orderStatusBadge";
+import ProductThumb from "@/components/shared/productThumb";
 import { formatDay, nextStatuses, statusLabel } from "@/helpers/orders";
 import { formatToman } from "@/helpers/catalog";
 import type { OrderStatus } from "@/models/order";
@@ -79,11 +80,16 @@ export default function OrderDetail({
           <h2 className="font-display text-lg font-semibold">اقلام</h2>
           <ul className="mt-3 divide-y divide-[#14110e]/8">
             {order.items.map((item) => (
-              <li key={`${item.productId}-${item.title}`} className="flex items-center justify-between py-3">
-                <span>
-                  {item.emoji} {item.title}
-                  <span className="mr-2 text-xs text-[#6b6459]">
-                    × {item.qty.toLocaleString("fa-IR")}
+              <li key={`${item.productId}-${item.title}`} className="flex items-center justify-between gap-3 py-3">
+                <span className="flex items-center gap-3">
+                  <span className="inline-block w-12 shrink-0">
+                    <ProductThumb item={item} className="h-12" compact />
+                  </span>
+                  <span>
+                    {item.title}
+                    <span className="mr-2 text-xs text-[#6b6459]">
+                      × {item.qty.toLocaleString("fa-IR")}
+                    </span>
                   </span>
                 </span>
                 <span className="text-sm">{formatToman(item.price * item.qty)}</span>

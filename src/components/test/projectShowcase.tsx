@@ -47,6 +47,7 @@ const sampleProduct: Product = {
   created_at: new Date().toISOString(),
   stock: 12,
   emoji: "👟",
+  image: "/products/shoes.jpg",
 };
 
 function Block({

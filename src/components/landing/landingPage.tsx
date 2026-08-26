@@ -22,7 +22,7 @@ const features = [
   {
     icon: CubeIcon,
     title: "کاتالوگ محصول",
-    body: "اضافه، ویرایش، حذف. لیست فارسی است و صفحه‌بندی دارد.",
+    body: "عکس، دسته، موجودی. اضافه و ویرایش از همان پنل.",
   },
   {
     icon: ClipboardDocumentListIcon,
