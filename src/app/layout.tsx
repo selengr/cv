@@ -13,7 +13,7 @@ const plex = IBM_Plex_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: "Shopy | پنل فروشگاه",
-  description: "ورود با موبایل و مدیریت محصول برای فروشگاه‌های کوچک",
+  description: "ورود با موبایل، کاتالوگ و سفارش برای فروشگاه‌های کوچک",
 };
 
 export default function RootLayout({

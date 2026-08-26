@@ -133,7 +133,7 @@ export default function LandingPage() {
               >
                 <PhoneDemo />
                 <p className="mt-4 text-sm text-[#6b6459]">
-                  روی منوی داشبورد کلیک کن. ردیف محصول را هم می‌شود انتخاب کرد.
+                  روی منوی داشبورد کلیک کن. سفارش‌ها را هم می‌شود دید.
                 </p>
               </motion.div>
             </div>

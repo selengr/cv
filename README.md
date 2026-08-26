@@ -14,18 +14,20 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 
 - sign up / login with phone + SMS code
 - seller panel
+- catalog: products, categories, stock
+- orders: status flow and manual orders
 - admin can add, edit, delete products (depends on permissions)
 - UI is RTL / Persian
 
 There is no public storefront. This is only the back office.
 
-It talks to a separate API. Default is `http://localhost:5000/api`. You can change that in `.env.local`:
+By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen.
+
+If you later hook a real API, set `NEXT_PUBLIC_LOCAL_AUTH=false` and:
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
-
-If the API isn't running, login and product pages won't work.
 
 ## Run it
 
@@ -41,7 +43,7 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- product images, categories, stock
-- orders
-- the users page is empty, needs real work
+- product images
+- invoices / print
+- user role editor
 - maybe a public shop later
