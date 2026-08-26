@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 
-const products = [
-  { id: "1042", title: "کفش اسپرت سفید", price: "۱٬۲۸۰٬۰۰۰", stock: "۱۲" },
-  { id: "1041", title: "کیف چرم دستی", price: "۲٬۴۵۰٬۰۰۰", stock: "۴" },
-  { id: "1040", title: "تیشرت نخی", price: "۳۲۰٬۰۰۰", stock: "۲۸" },
+const orders = [
+  { id: "1048", name: "نگار احمدی", total: "۱٬۴۶۰٬۰۰۰", status: "در انتظار" },
+  { id: "1047", name: "حسین مرادی", total: "۶۴۰٬۰۰۰", status: "پرداخت‌شده" },
+  { id: "1046", name: "سارا محمدی", total: "۱٬۲۱۰٬۰۰۰", status: "بسته‌بندی" },
 ];
 
-const tabs = ["داشبورد", "محصولات", "کاربران"] as const;
+const tabs = ["داشبورد", "سفارش‌ها", "محصولات", "کاربران"] as const;
 
 export default function DashboardPreview() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("محصولات");
@@ -89,9 +89,9 @@ export default function DashboardPreview() {
               <h3 className="font-display text-lg font-semibold">وضعیت فروشگاه</h3>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {[
-                  { label: "سفارش", value: "۱۸" },
-                  { label: "محصول", value: "۲۴" },
-                  { label: "بازدید", value: "۱۴۲" },
+                  { label: "سفارش باز", value: "۴" },
+                  { label: "محصول", value: "۸" },
+                  { label: "فروش", value: "۴٫۳م" },
                 ].map((stat) => (
                   <div key={stat.label} className="rounded-xl bg-white px-3 py-4 shadow-sm">
                     <p className="text-[11px] text-[#6b6459]">{stat.label}</p>
@@ -113,6 +113,40 @@ export default function DashboardPreview() {
                 </div>
               </div>
             </div>
+          )}
+
+          {tab === "سفارش‌ها" && (
+            <>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-[#6b6459]">فروش</p>
+                  <h3 className="font-display text-base font-semibold text-[#14110e] sm:text-lg">
+                    سفارش‌های اخیر
+                  </h3>
+                </div>
+                <span className="rounded-full bg-[#1f4a45] px-3 py-1.5 text-xs text-white">
+                  سفارش دستی
+                </span>
+              </div>
+              <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm">
+                {orders.map((order, index) => (
+                  <div
+                    key={order.id}
+                    className={`flex w-full items-center justify-between px-4 py-3 text-right text-sm ${
+                      index !== orders.length - 1 ? "border-b border-[#efe8dc]" : ""
+                    }`}
+                  >
+                    <div>
+                      <p className="font-medium text-[#14110e]">
+                        #{order.id} · {order.name}
+                      </p>
+                      <p className="text-xs text-[#6b6459]">{order.status}</p>
+                    </div>
+                    <p className="text-[#1f4a45]">{order.total}</p>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           {tab === "کاربران" && (
