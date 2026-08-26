@@ -107,9 +107,9 @@ export function handleLocalRequest(
       id: nextId(users),
       name,
       phone,
-      permissions: users.length === 0 ? ADMIN_PERMISSIONS : [...ADMIN_PERMISSIONS],
+      permissions: users.length === 0 ? ADMIN_PERMISSIONS : [],
     };
-    // everyone gets admin while this is local-only, so the panel is usable
+    // first account is admin; later ones start as seller
     saveUsers([...users, user]);
     return ok(config, { user: publicUser(user) }, 201);
   }
