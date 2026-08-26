@@ -235,6 +235,7 @@ export function handleLocalRequest(
       price: Number(body.price ?? products[index].price),
       stock: Number(body.stock ?? products[index].stock ?? 0),
       emoji: String(body.emoji ?? products[index].emoji ?? "📦"),
+      image: String(body.image ?? products[index].image ?? "").trim() || undefined,
     };
     saveProducts(products);
     return ok(config, { product: products[index] });
@@ -301,6 +302,7 @@ export function handleLocalRequest(
         productId: product.id,
         title: product.title,
         emoji: product.emoji ?? "📦",
+        image: product.image,
         price: product.price,
         qty,
       });
