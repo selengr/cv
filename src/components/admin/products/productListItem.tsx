@@ -56,7 +56,7 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
       <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
         <span className="inline-flex items-center gap-2">
           <span className="inline-block w-10">
-            <ProductThumb item={product} className="h-10 rounded-lg text-lg" />
+            <ProductThumb item={product} className="h-10" compact />
           </span>
           {product.id}
         </span>

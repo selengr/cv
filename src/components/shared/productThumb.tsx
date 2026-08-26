@@ -7,9 +7,11 @@ type Thumb = {
 export default function ProductThumb({
   item,
   className = "h-28",
+  compact = false,
 }: {
   item: Thumb;
   className?: string;
+  compact?: boolean;
 }) {
   if (item.image) {
     return (
@@ -17,14 +19,16 @@ export default function ProductThumb({
       <img
         src={item.image}
         alt={item.title}
-        className={`w-full rounded-2xl object-cover ${className}`}
+        className={`w-full object-cover ${compact ? "rounded-lg" : "rounded-2xl"} ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`flex w-full items-center justify-center rounded-2xl bg-[#1f4a45]/8 text-5xl ${className}`}
+      className={`flex w-full items-center justify-center bg-[#1f4a45]/8 ${
+        compact ? "rounded-lg text-lg" : "rounded-2xl text-5xl"
+      } ${className}`}
     >
       {item.emoji ?? "📦"}
     </div>
