@@ -15,7 +15,7 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - sign up / login with phone + SMS code
 - seller panel
 - catalog: products, photos, categories, stock
-- orders: status flow and manual orders
+- orders: status flow, manual orders, printable invoice
 - admin can add, edit, delete products (depends on permissions)
 - UI is RTL / Persian
 
@@ -43,6 +43,5 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- invoices / print
 - user role editor
 - maybe a public shop later

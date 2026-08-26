@@ -40,6 +40,18 @@ export function nextStatuses(status: OrderStatus): OrderStatus[] {
   }
 }
 
+export function formatInvoiceDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString("fa-IR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
 export function formatDay(iso: string) {
   try {
     return new Date(iso).toLocaleDateString("fa-IR", {

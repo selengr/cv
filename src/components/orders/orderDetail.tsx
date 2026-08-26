@@ -72,7 +72,15 @@ export default function OrderDetail({
           </h1>
           <p className="mt-1 text-sm text-[#5c564d]">{formatDay(order.created_at)}</p>
         </div>
-        <OrderStatusBadge status={order.status} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/panel/orders/${order.id}/invoice`}
+            className="rounded-full border border-[#14110e]/12 bg-white px-4 py-1.5 text-sm"
+          >
+            فاکتور
+          </Link>
+          <OrderStatusBadge status={order.status} />
+        </div>
       </div>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">

@@ -52,6 +52,18 @@ a {
   mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 40%, transparent 75%);
 }
 
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .invoice-sheet {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

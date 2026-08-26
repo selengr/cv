@@ -21,7 +21,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-[#f4efe6] text-[#14110e]">
-      <header className="sticky top-0 z-20 border-b border-[#14110e]/8 bg-[#f4efe6]/90 backdrop-blur-md">
+      <header className="print:hidden sticky top-0 z-20 border-b border-[#14110e]/8 bg-[#f4efe6]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <Logo />
           <nav className="flex items-center gap-1 overflow-x-auto text-sm">
@@ -59,7 +59,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
           </nav>
         </div>
       </header>
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">{children}</div>
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 print:max-w-none print:px-0 print:py-0">{children}</div>
     </div>
   );
 }
