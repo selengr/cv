@@ -18,6 +18,7 @@ import {
   setCartQty,
   subscribeCart,
 } from "@/helpers/cart";
+import { productMatchesQuery } from "@/helpers/search";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";
@@ -26,6 +27,7 @@ export default function ShopPage() {
   const { data, error, mutate } = useSWR("shop/products", GetShopProducts);
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const [category, setCategory] = useState("");
+  const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,10 +36,11 @@ export default function ShopPage() {
   const loading = !data && !error;
   const filtered = useMemo(() => {
     const products = data ?? [];
-    return category
-      ? products.filter((item) => item.category === category)
-      : products;
-  }, [category, data]);
+    return products.filter((item) => {
+      const inCategory = category ? item.category === category : true;
+      return inCategory && productMatchesQuery(item, query);
+    });
+  }, [category, data, query]);
 
   const onAdd = (product: Product) => {
     const before = lines.find((line) => line.productId === product.id)?.qty ?? 0;
@@ -110,7 +113,18 @@ export default function ShopPage() {
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <label className="mt-6 block sm:max-w-md">
+        <span className="sr-only">جستجو</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="جستجو: کفش، کیف، خانه..."
+          className="w-full rounded-2xl border border-[#14110e]/10 bg-white px-4 py-2.5 text-sm focus:border-[#1f4a45] focus:ring-[#1f4a45]"
+        />
+      </label>
+
+      <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setCategory("")}
@@ -139,7 +153,10 @@ export default function ShopPage() {
           {loading ? (
             <LoadingBox />
           ) : filtered.length === 0 ? (
-            <EmptyList title="محصولی نیست" description="این دسته خالی است" />
+            <EmptyList
+              title="چیزی پیدا نشد"
+              description="عبارت یا دسته را عوض کن"
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {filtered.map((product) => {
