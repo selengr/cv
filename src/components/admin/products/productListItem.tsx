@@ -7,6 +7,7 @@ import type { KeyedMutator } from "swr";
 import DeleteConfirmation from "@/components/shared/deleteConfirmation";
 import ValidationError from "@/exceptions/validationError";
 import { categoryLabel, formatToman } from "@/helpers/catalog";
+import ProductThumb from "@/components/shared/productThumb";
 import Product from "@/models/product";
 import { DeleteProduct } from "@/services/product";
 
@@ -53,7 +54,12 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
         )}
       </td>
       <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
-        {product.emoji ?? "📦"} {product.id}
+        <span className="inline-flex items-center gap-2">
+          <span className="inline-block w-10">
+            <ProductThumb item={product} className="h-10 rounded-lg text-lg" />
+          </span>
+          {product.id}
+        </span>
       </td>
       <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-900">
         {product.title}
