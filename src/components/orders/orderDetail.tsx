@@ -1,0 +1,134 @@
+"use client";
+
+import { use } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { toast } from "react-toastify";
+import { GetSingleOrder, UpdateOrderStatus } from "@/services/order";
+import LoadingBox from "@/components/shared/loadingBox";
+import OrderStatusBadge from "@/components/orders/orderStatusBadge";
+import { formatDay, nextStatuses, statusLabel } from "@/helpers/orders";
+import { formatToman } from "@/helpers/catalog";
+import type { OrderStatus } from "@/models/order";
+import ValidationError from "@/exceptions/validationError";
+
+export default function OrderDetail({
+  params,
+  backHref = "/panel/orders",
+}: {
+  params: Promise<{ orderId: string }>;
+  backHref?: string;
+}) {
+  const { orderId } = use(params);
+  const router = useRouter();
+  const { data, error, isLoading, mutate } = useSWR(
+    { url: `/orders/${orderId}`, orderId: Number(orderId) },
+    GetSingleOrder,
+  );
+  const order = data?.order;
+
+  const changeStatus = async (status: OrderStatus) => {
+    try {
+      await UpdateOrderStatus(Number(orderId), status);
+      await mutate();
+      toast.success(`وضعیت شد ${statusLabel(status)}`);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        toast.error("این تغییر وضعیت مجاز نیست");
+        return;
+      }
+      toast.error("وضعیت عوض نشد");
+    }
+  };
+
+  if (isLoading) return <LoadingBox />;
+  if (error || !order) {
+    return (
+      <div>
+        <p className="text-sm text-[#6b6459]">این سفارش پیدا نشد.</p>
+        <button
+          type="button"
+          onClick={() => router.replace(backHref)}
+          className="mt-3 text-sm text-[#1f4a45]"
+        >
+          برگشت به لیست
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Link href={backHref} className="text-sm text-[#1f4a45]">
+        ← سفارش‌ها
+      </Link>
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">
+            سفارش #{order.id}
+          </h1>
+          <p className="mt-1 text-sm text-[#5c564d]">{formatDay(order.created_at)}</p>
+        </div>
+        <OrderStatusBadge status={order.status} />
+      </div>
+
+      <div className="mt-8 grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
+        <div className="rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm">
+          <h2 className="font-display text-lg font-semibold">اقلام</h2>
+          <ul className="mt-3 divide-y divide-[#14110e]/8">
+            {order.items.map((item) => (
+              <li key={`${item.productId}-${item.title}`} className="flex items-center justify-between py-3">
+                <span>
+                  {item.emoji} {item.title}
+                  <span className="mr-2 text-xs text-[#6b6459]">
+                    × {item.qty.toLocaleString("fa-IR")}
+                  </span>
+                </span>
+                <span className="text-sm">{formatToman(item.price * item.qty)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-left font-medium">{formatToman(order.total)}</p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm">
+            <h2 className="font-display text-lg font-semibold">مشتری</h2>
+            <p className="mt-2">{order.customerName}</p>
+            <p className="mt-1 text-sm text-[#5c564d]" dir="ltr">
+              {order.customerPhone}
+            </p>
+            {order.note && (
+              <p className="mt-3 rounded-2xl bg-[#f4efe6] p-3 text-sm text-[#5c564d]">
+                {order.note}
+              </p>
+            )}
+          </div>
+
+          {nextStatuses(order.status).length > 0 && (
+            <div className="rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm">
+              <h2 className="font-display text-lg font-semibold">تغییر وضعیت</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {nextStatuses(order.status).map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => changeStatus(status)}
+                    className={`rounded-full px-4 py-2 text-sm ${
+                      status === "cancelled"
+                        ? "border border-red-200 bg-white text-red-700"
+                        : "bg-[#1f4a45] text-white"
+                    }`}
+                  >
+                    {statusLabel(status)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
