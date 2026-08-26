@@ -154,7 +154,7 @@ function seedProducts(): Product[] {
       price: 240000,
       user_id: 1,
       created_at: new Date().toISOString(),
-      stock: 20,
+      stock: 18,
       emoji: "☕",
     },
   ];

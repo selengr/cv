@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { mutate as globalMutate } from "swr";
 import { toast } from "react-toastify";
 import { GetProducts } from "@/services/product";
 import { CreateOrder } from "@/services/order";
@@ -76,6 +76,7 @@ export default function CreateOrderForm() {
         note: note.trim() || undefined,
         items: lines,
       });
+      await globalMutate("orders");
       toast.success("سفارش ثبت شد");
       router.push("/panel/orders");
     } catch (err) {

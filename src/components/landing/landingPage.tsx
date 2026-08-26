@@ -99,7 +99,7 @@ export default function LandingPage() {
                 فروشگاه را جمع‌وجور، جلو چشم نگه دار
               </h1>
               <p className="mt-5 max-w-xl text-base text-[#5c564d] sm:text-lg">
-                ویترین نیست. جایی است که محصول را می‌گذاری، نقش‌ها را جدا می‌کنی
+                ویترین نیست. جایی است که محصول را می‌گذاری، سفارش را می‌گیری
                 و با موبایل وارد می‌شوی.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
