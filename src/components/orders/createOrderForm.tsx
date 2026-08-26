@@ -20,7 +20,7 @@ export default function CreateOrderForm() {
     { url: "/orders/create-products", page: 1, per_page: 50 },
     GetProducts,
   );
-  const products: Product[] = data?.products ?? [];
+  const products = useMemo<Product[]>(() => data?.products ?? [], [data?.products]);
   const loading = !data && !error;
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
