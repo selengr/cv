@@ -3,9 +3,8 @@
 import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { mutate as globalMutate } from "swr";
 import { toast } from "react-toastify";
-import { mutate as globalMutate } from "swr";
 import { GetSingleOrder, UpdateOrderStatus } from "@/services/order";
 import LoadingBox from "@/components/shared/loadingBox";
 import OrderStatusBadge from "@/components/orders/orderStatusBadge";

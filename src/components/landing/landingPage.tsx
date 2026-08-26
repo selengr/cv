@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import {
+  ClipboardDocumentListIcon,
   CubeIcon,
   DevicePhoneMobileIcon,
-  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
@@ -25,16 +25,16 @@ const features = [
     body: "اضافه، ویرایش، حذف. لیست فارسی است و صفحه‌بندی دارد.",
   },
   {
-    icon: ShieldCheckIcon,
-    title: "نقش و دسترسی",
-    body: "ادمین کاتالوگ را می‌بیند. فروشنده همان پنل خودش را.",
+    icon: ClipboardDocumentListIcon,
+    title: "سفارش‌ها",
+    body: "از تماس و اینستاگرام می‌آید، وضعیت‌اش را همین‌جا عوض می‌کنی.",
   },
 ];
 
 const steps = [
   { n: "۱", title: "حساب", body: "اسم و شماره. یک دقیقه." },
   { n: "۲", title: "کد", body: "پیامک می‌آید، شش رقم می‌زنی." },
-  { n: "۳", title: "پنل", body: "محصولات همان‌جا جمع می‌شوند." },
+  { n: "۳", title: "پنل", body: "محصول و سفارش همان‌جا جمع می‌شوند." },
 ];
 
 function TiltFrame({ children }: { children: React.ReactNode }) {
