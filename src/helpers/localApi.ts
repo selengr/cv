@@ -2,6 +2,8 @@ import { AxiosError, AxiosHeaders } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { nextStatuses } from "@/helpers/orders";
+import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
+import type { ShopRole } from "@/helpers/roles";
 import type { OrderItem, OrderStatus } from "@/models/order";
 import {
   ADMIN_PERMISSIONS,
@@ -163,6 +165,55 @@ export function handleLocalRequest(
         ...publicUser(user),
         phone: user.phone,
       })),
+    });
+  }
+
+  const userRoleMatch = path.match(/^\/users\/(\d+)\/role$/);
+  if (method === "POST" && userRoleMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    if (!session.user.permissions?.includes("manage_users")) {
+      throw fail(config, 403, { message: "forbidden" });
+    }
+
+    const id = Number(userRoleMatch[1]);
+    const role = String(body.role ?? "") as ShopRole;
+    if (role !== "admin" && role !== "seller") {
+      throw fail(config, 422, { errors: { role: "نقش درست نیست" } });
+    }
+
+    const users = getUsers();
+    const index = users.findIndex((user) => user.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+
+    const currentRole = roleFromPermissions(users[index].permissions);
+    if (currentRole === "admin" && role === "seller") {
+      const adminCount = users.filter(
+        (user) => roleFromPermissions(user.permissions) === "admin",
+      ).length;
+      if (adminCount <= 1) {
+        throw fail(config, 422, {
+          errors: { role: "حداقل یک ادمین باید بماند" },
+        });
+      }
+    }
+
+    users[index] = {
+      ...users[index],
+      permissions: permissionsForRole(role),
+    };
+    saveUsers(users);
+
+    if (session.user.id === id) {
+      const nextUser = publicUser(users[index]);
+      saveSession({ ...session, user: nextUser });
+    }
+
+    return ok(config, {
+      user: {
+        ...publicUser(users[index]),
+        phone: users[index].phone,
+      },
     });
   }
 
