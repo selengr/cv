@@ -9,6 +9,7 @@ import User from "@/models/user";
 
 const links = [
   { href: "/panel", label: "خلاصه", exact: true },
+  { href: "/panel/orders", label: "سفارش‌ها", exact: false },
   { href: "/panel/products", label: "محصولات", exact: false },
 ];
 
