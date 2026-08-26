@@ -160,6 +160,143 @@ function seedProducts(): Product[] {
   ];
 }
 
+function daysAgo(days: number, hours = 10) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(hours, 20, 0, 0);
+  return date.toISOString();
+}
+
+function seedOrders(): Order[] {
+  return [
+    {
+      id: 1048,
+      customerName: "نگار احمدی",
+      customerPhone: "09123334444",
+      items: [
+        {
+          productId: 1,
+          title: "کفش اسپرت سفید",
+          emoji: "👟",
+          price: 1280000,
+          qty: 1,
+        },
+        {
+          productId: 5,
+          title: "کلاه کپ",
+          emoji: "🧢",
+          price: 180000,
+          qty: 1,
+        },
+      ],
+      total: 1460000,
+      status: "pending",
+      note: "اگر کفش سایز ۴۰ تمام شد، ۴۱ بفرستید",
+      created_at: daysAgo(0, 9),
+    },
+    {
+      id: 1047,
+      customerName: "حسین مرادی",
+      customerPhone: "09125556666",
+      items: [
+        {
+          productId: 3,
+          title: "تیشرت نخی",
+          emoji: "👕",
+          price: 320000,
+          qty: 2,
+        },
+      ],
+      total: 640000,
+      status: "paid",
+      created_at: daysAgo(0, 14),
+    },
+    {
+      id: 1046,
+      customerName: "سارا محمدی",
+      customerPhone: "09127778888",
+      items: [
+        {
+          productId: 4,
+          title: "شلوار جین",
+          emoji: "👖",
+          price: 890000,
+          qty: 1,
+        },
+        {
+          productId: 3,
+          title: "تیشرت نخی",
+          emoji: "👕",
+          price: 320000,
+          qty: 1,
+        },
+      ],
+      total: 1210000,
+      status: "packed",
+      created_at: daysAgo(1, 16),
+    },
+    {
+      id: 1045,
+      customerName: "رضا کاظمی",
+      customerPhone: "09120001111",
+      items: [
+        {
+          productId: 2,
+          title: "کیف چرم دستی",
+          emoji: "👜",
+          price: 2450000,
+          qty: 1,
+        },
+      ],
+      total: 2450000,
+      status: "shipped",
+      created_at: daysAgo(2, 11),
+    },
+    {
+      id: 1044,
+      customerName: "مینا کریمی",
+      customerPhone: "09121234567",
+      items: [
+        {
+          productId: 6,
+          title: "ساعت مچی",
+          emoji: "⌚",
+          price: 1750000,
+          qty: 1,
+        },
+      ],
+      total: 1750000,
+      status: "cancelled",
+      note: "مشتری پشیمان شد",
+      created_at: daysAgo(3, 18),
+    },
+    {
+      id: 1043,
+      customerName: "امیر حسینی",
+      customerPhone: "09129876543",
+      items: [
+        {
+          productId: 7,
+          title: "کوله‌پشتی",
+          emoji: "🎒",
+          price: 980000,
+          qty: 1,
+        },
+        {
+          productId: 8,
+          title: "لیوان سرامیک",
+          emoji: "☕",
+          price: 240000,
+          qty: 2,
+        },
+      ],
+      total: 1460000,
+      status: "pending",
+      created_at: daysAgo(4, 12),
+    },
+  ];
+}
+
 export function getUsers(): StoredUser[] {
   ensureSeed();
   const users = readJson<StoredUser[]>(USERS_KEY, []);
@@ -190,9 +327,25 @@ function ensureSeed() {
   if (!canUseStorage()) return;
   if (localStorage.getItem(DATA_VERSION_KEY) === DATA_VERSION) return;
   writeJson(PRODUCTS_KEY, seedProducts());
+  writeJson(ORDERS_KEY, seedOrders());
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
+}
+
+export function getOrders(): Order[] {
+  ensureSeed();
+  const orders = readJson<Order[] | null>(ORDERS_KEY, null);
+  if (!orders || orders.length === 0) {
+    const seeded = seedOrders();
+    writeJson(ORDERS_KEY, seeded);
+    return seeded;
+  }
+  return orders;
+}
+
+export function saveOrders(orders: Order[]) {
+  writeJson(ORDERS_KEY, orders);
 }
 
 export function saveProducts(products: Product[]) {
