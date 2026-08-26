@@ -120,7 +120,7 @@ export default function ProjectShowcase() {
               { href: "/admin/orders", title: "سفارش ادمین", body: "همان لیست در پنل ادمین" },
               { href: "/admin/products", title: "محصولات", body: "لیست، ساخت، ویرایش، حذف" },
               { href: "/admin/products/create", title: "ساخت محصول", body: "فرم محصول" },
-              { href: "/admin/users", title: "کاربران", body: "صفحه نقش‌ها" },
+              { href: "/admin/users", title: "کاربران", body: "تغییر نقش ادمین و فروشنده" },
             ].map((item) => (
               <Link
                 key={item.href}
