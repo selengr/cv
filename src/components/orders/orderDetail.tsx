@@ -33,6 +33,7 @@ export default function OrderDetail({
     try {
       await UpdateOrderStatus(Number(orderId), status);
       await mutate();
+      await globalMutate("orders");
       toast.success(`وضعیت شد ${statusLabel(status)}`);
     } catch (err) {
       if (err instanceof ValidationError) {
@@ -62,7 +63,7 @@ export default function OrderDetail({
   return (
     <div>
       <Link href={backHref} className="text-sm text-[#1f4a45]">
-        ← سفارش‌ها
+        بازگشت به سفارش‌ها
       </Link>
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div>
