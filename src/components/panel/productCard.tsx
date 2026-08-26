@@ -4,6 +4,7 @@ import Link from "next/link";
 import { categoryLabel, formatToman } from "@/helpers/catalog";
 import useAuth from "@/hooks/useAuth";
 import User from "@/models/user";
+import ProductThumb from "@/components/shared/productThumb";
 import type Product from "@/models/product";
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -13,9 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="flex flex-col rounded-3xl border border-[#14110e]/8 bg-white/85 p-4 shadow-sm">
-      <div className="flex h-28 items-center justify-center rounded-2xl bg-[#1f4a45]/8 text-5xl">
-        {product.emoji ?? "📦"}
-      </div>
+      <ProductThumb item={product} className="h-36" />
       <p className="mt-3 text-xs text-[#1f4a45]">{categoryLabel(product.category)}</p>
       <h3 className="font-display mt-1 text-lg font-semibold">{product.title}</h3>
       <p className="mt-1 line-clamp-2 text-sm text-[#6b6459]">{product.body}</p>

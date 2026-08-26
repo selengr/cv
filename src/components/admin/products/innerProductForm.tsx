@@ -7,6 +7,7 @@ import Input from "@/components/shared/form/input";
 import SelectBox from "@/components/shared/form/selectbox";
 import Textarea from "@/components/shared/form/textarea";
 import { PRODUCT_EMOJIS, categorySelectOptions } from "@/helpers/catalog";
+import ProductImageField from "@/components/admin/products/productImageField";
 import Product from "@/models/product";
 
 type ProductFormProps = FormikProps<CreateProductInterface> & {
@@ -43,6 +44,12 @@ export default function InnerProductForm(props: ProductFormProps) {
               label: emoji,
               value: emoji,
             }))}
+          />
+        </div>
+        <div className="sm:col-span-4">
+          <ProductImageField
+            value={props.values.image}
+            onChange={(value) => props.setFieldValue("image", value)}
           />
         </div>
         <div className="sm:col-span-4">
