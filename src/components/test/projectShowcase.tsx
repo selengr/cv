@@ -108,6 +108,7 @@ export default function ProjectShowcase() {
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { href: "/", title: "خانه", body: "لندینگ" },
+              { href: "/shop", title: "فروشگاه", body: "ویترین عمومی، سبد، سفارش مهمان" },
               { href: "/auth/register", title: "ثبت‌نام", body: "اسم و موبایل" },
               { href: "/auth/login", title: "ورود", body: "شماره و کد تایید" },
               { href: "/auth/login/step-two", title: "تایید کد", body: "قدم دوم ورود" },
