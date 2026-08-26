@@ -8,4 +8,5 @@ export default interface Product {
   created_at: string;
   stock?: number;
   emoji?: string;
+  image?: string;
 }

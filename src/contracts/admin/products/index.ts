@@ -5,4 +5,5 @@ export interface CreateProductInterface {
   description: string;
   stock: number;
   emoji: string;
+  image: string;
 }

@@ -3,7 +3,7 @@ import type Product from "@/models/product";
 import type Order from "@/models/order";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "5";
+const DATA_VERSION = "6";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -79,6 +79,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 11,
       emoji: "👟",
+      image: "/products/shoes.jpg",
     },
     {
       id: 2,
@@ -90,6 +91,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 3,
       emoji: "👜",
+      image: "/products/bag.jpg",
     },
     {
       id: 3,
@@ -101,6 +103,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 25,
       emoji: "👕",
+      image: "/products/tshirt.jpg",
     },
     {
       id: 4,
@@ -112,6 +115,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 8,
       emoji: "👖",
+      image: "/products/jeans.jpg",
     },
     {
       id: 5,
@@ -123,6 +127,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 15,
       emoji: "🧢",
+      image: "/products/cap.jpg",
     },
     {
       id: 6,
@@ -134,6 +139,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 3,
       emoji: "⌚",
+      image: "/products/watch.jpg",
     },
     {
       id: 7,
@@ -145,6 +151,7 @@ function seedProducts(): Product[] {
       created_at: new Date().toISOString(),
       stock: 6,
       emoji: "🎒",
+      image: "/products/backpack.jpg",
     },
     {
       id: 8,
