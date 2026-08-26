@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import useSWR from "swr";
 import { toast } from "react-toastify";
 import ShopShell from "@/components/shop/shopShell";
@@ -16,7 +16,7 @@ import {
   clearCart,
   readCart,
   setCartQty,
-  type CartLine,
+  subscribeCart,
 } from "@/helpers/cart";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
@@ -24,26 +24,20 @@ import type Product from "@/models/product";
 
 export default function ShopPage() {
   const { data, error, mutate } = useSWR("shop/products", GetShopProducts);
-  const [lines, setLines] = useState<CartLine[]>([]);
+  const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const [category, setCategory] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [placedId, setPlacedId] = useState<number | null>(null);
 
-  useEffect(() => {
-    setLines(readCart());
-  }, []);
-
-  const products = data ?? [];
   const loading = !data && !error;
-  const filtered = useMemo(
-    () =>
-      category
-        ? products.filter((item) => item.category === category)
-        : products,
-    [category, products],
-  );
+  const filtered = useMemo(() => {
+    const products = data ?? [];
+    return category
+      ? products.filter((item) => item.category === category)
+      : products;
+  }, [category, data]);
 
   const onAdd = (product: Product) => {
     const before = lines.find((line) => line.productId === product.id)?.qty ?? 0;
@@ -53,7 +47,6 @@ export default function ShopPage() {
       toast.error("موجودی این محصول تمام است");
       return;
     }
-    setLines(next);
     toast.success(`${product.title} به سبد اضافه شد`);
   };
 
@@ -84,7 +77,6 @@ export default function ShopPage() {
         })),
       });
       clearCart();
-      setLines([]);
       setPlacedId(order.id);
       await mutate();
       toast.success("سفارش ثبت شد");
@@ -208,7 +200,7 @@ export default function ShopPage() {
                     min={1}
                     value={line.qty}
                     onChange={(event) =>
-                      setLines(setCartQty(line.productId, Number(event.target.value) || 0))
+                      setCartQty(line.productId, Number(event.target.value) || 0)
                     }
                     className="w-14 rounded-xl border border-[#14110e]/10 px-2 py-1 text-sm"
                   />
