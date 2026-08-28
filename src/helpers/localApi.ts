@@ -372,6 +372,9 @@ export function handleLocalRequest(
     });
     saveProducts(nextProducts);
 
+    const paymentMethod =
+      String(body.paymentMethod ?? "cod") === "online" ? "online" : "cod";
+
     const orders = getOrders();
     const order = {
       id: nextId(orders),
@@ -382,9 +385,43 @@ export function handleLocalRequest(
       status: "pending" as OrderStatus,
       note: String(body.note ?? "").trim() || undefined,
       created_at: new Date().toISOString(),
+      paymentMethod: paymentMethod as "online" | "cod",
     };
     saveOrders([order, ...orders]);
     return ok(config, { order }, 201);
+  }
+
+  const shopOrderMatch = path.match(/^\/shop\/orders\/(\d+)$/);
+  if (method === "GET" && shopOrderMatch) {
+    const id = Number(shopOrderMatch[1]);
+    const order = getOrders().find((item) => item.id === id);
+    if (!order) throw fail(config, 404, { message: "not found" });
+    return ok(config, { order });
+  }
+
+  const payMatch = path.match(/^\/orders\/(\d+)\/pay$/);
+  if (method === "POST" && payMatch) {
+    const id = Number(payMatch[1]);
+    const methodName =
+      String(body.method ?? "online") === "cod" ? "cod" : "online";
+    const orders = getOrders();
+    const index = orders.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = orders[index];
+    if (current.status === "cancelled") {
+      throw fail(config, 422, { errors: { status: "سفارش لغو شده" } });
+    }
+    if (current.status !== "pending") {
+      throw fail(config, 422, { errors: { status: "قبلا پرداخت شده" } });
+    }
+    orders[index] = {
+      ...current,
+      status: "paid",
+      paymentMethod: methodName,
+      paid_at: new Date().toISOString(),
+    };
+    saveOrders(orders);
+    return ok(config, { order: orders[index] });
   }
 
   const statusMatch = path.match(/^\/orders\/(\d+)\/status$/);
@@ -410,7 +447,16 @@ export function handleLocalRequest(
       saveProducts(products);
     }
 
-    orders[index] = { ...current, status: next };
+    orders[index] = {
+      ...current,
+      status: next,
+      ...(next === "paid"
+        ? {
+            paid_at: current.paid_at ?? new Date().toISOString(),
+            paymentMethod: current.paymentMethod ?? "cod",
+          }
+        : {}),
+    };
     saveOrders(orders);
     return ok(config, { order: orders[index] });
   }
