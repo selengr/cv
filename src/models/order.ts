@@ -23,4 +23,6 @@ export default interface Order {
   status: OrderStatus;
   note?: string;
   created_at: string;
+  paymentMethod?: "online" | "cod";
+  paid_at?: string;
 }
