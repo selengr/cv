@@ -10,6 +10,7 @@ import LoadingBox from "@/components/shared/loadingBox";
 import OrderStatusBadge from "@/components/orders/orderStatusBadge";
 import ProductThumb from "@/components/shared/productThumb";
 import { formatDay, nextStatuses, statusLabel } from "@/helpers/orders";
+import { paymentLabel } from "@/helpers/payments";
 import { formatToman } from "@/helpers/catalog";
 import type { OrderStatus } from "@/models/order";
 import ValidationError from "@/exceptions/validationError";
@@ -114,6 +115,12 @@ export default function OrderDetail({
             <p className="mt-1 text-sm text-[#5c564d]" dir="ltr">
               {order.customerPhone}
             </p>
+            {order.paymentMethod && (
+              <p className="mt-3 text-sm text-[#5c564d]">
+                پرداخت: {paymentLabel(order.paymentMethod)}
+                {order.paid_at ? " · انجام شد" : ""}
+              </p>
+            )}
             {order.note && (
               <p className="mt-3 rounded-2xl bg-[#f4efe6] p-3 text-sm text-[#5c564d]">
                 {order.note}
