@@ -1,4 +1,5 @@
 import callApi from "@/helpers/callApi";
+import type { PaymentMethod } from "@/helpers/payments";
 import type Product from "@/models/product";
 import type Order from "@/models/order";
 
@@ -11,6 +12,7 @@ export async function CreateShopOrder(values: {
   customerName: string;
   customerPhone: string;
   note?: string;
+  paymentMethod?: PaymentMethod;
   items: Array<{ productId: number; qty: number }>;
 }) {
   const res = await callApi().post("/shop/orders", values);
