@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "react-toastify";
 import ShopShell from "@/components/shop/shopShell";
@@ -20,20 +19,17 @@ import {
   subscribeCart,
 } from "@/helpers/cart";
 import { productMatchesQuery } from "@/helpers/search";
-import { PAYMENT_METHODS, type PaymentMethod } from "@/helpers/payments";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";
 
 export default function ShopPage() {
-  const router = useRouter();
   const { data, error, mutate } = useSWR("shop/products", GetShopProducts);
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [saving, setSaving] = useState(false);
   const [placedId, setPlacedId] = useState<number | null>(null);
 
@@ -78,7 +74,6 @@ export default function ShopPage() {
       const order = await CreateShopOrder({
         customerName: name.trim(),
         customerPhone: normalized,
-        paymentMethod,
         items: lines.map((line) => ({
           productId: line.productId,
           qty: line.qty,
@@ -87,11 +82,6 @@ export default function ShopPage() {
       clearCart();
       setPlacedId(order.id);
       await mutate();
-      if (paymentMethod === "online") {
-        toast.success("برو برای پرداخت آزمایشی");
-        router.push(`/shop/pay/${order.id}`);
-        return;
-      }
       toast.success("سفارش ثبت شد");
     } catch (err) {
       if (err instanceof ValidationError) {
@@ -117,7 +107,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {placedId && paymentMethod !== "online" && (
+      {placedId && (
         <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           سفارش #{placedId.toLocaleString("fa-IR")} ثبت شد. فروشنده در پنل می‌بیندش.
         </div>
@@ -253,39 +243,12 @@ export default function ShopPage() {
               dir="ltr"
               className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
             />
-            <div className="space-y-2">
-              {PAYMENT_METHODS.map((method) => (
-                <label
-                  key={method.value}
-                  className={`flex cursor-pointer flex-col rounded-2xl border px-3 py-2.5 text-sm ${
-                    paymentMethod === method.value
-                      ? "border-[#1f4a45] bg-[#1f4a45]/5"
-                      : "border-[#14110e]/10"
-                  }`}
-                >
-                  <span className="flex items-center gap-2 font-medium">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === method.value}
-                      onChange={() => setPaymentMethod(method.value)}
-                    />
-                    {method.label}
-                  </span>
-                  <span className="mt-1 text-xs text-[#6b6459]">{method.hint}</span>
-                </label>
-              ))}
-            </div>
             <button
               type="submit"
               disabled={saving || lines.length === 0}
               className="w-full rounded-full bg-[#1f4a45] px-4 py-2.5 text-sm text-white disabled:opacity-50"
             >
-              {saving
-                ? "در حال ثبت..."
-                : paymentMethod === "online"
-                  ? "ثبت و پرداخت"
-                  : "ثبت سفارش"}
+              {saving ? "در حال ثبت..." : "ثبت سفارش"}
             </button>
           </form>
         </aside>
