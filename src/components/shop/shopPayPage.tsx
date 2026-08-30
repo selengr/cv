@@ -128,12 +128,20 @@ export default function ShopPayPage({
               <p className="mt-2 text-sm text-[#5c564d]">
                 این سفارش دیگر نیازی به پرداخت ندارد. فروشنده در پنل می‌بیندش.
               </p>
-              <Link
-                href="/shop"
-                className="mt-4 inline-flex rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
-              >
-                ادامه خرید
-              </Link>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  href="/shop/track"
+                  className="inline-flex rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
+                >
+                  پیگیری سفارش
+                </Link>
+                <Link
+                  href="/shop"
+                  className="inline-flex rounded-full px-4 py-2 text-sm ring-1 ring-[#14110e]/15"
+                >
+                  ادامه خرید
+                </Link>
+              </div>
             </div>
           ) : (
             <form onSubmit={pay}>
