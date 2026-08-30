@@ -18,7 +18,7 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - orders: status flow, manual orders, printable invoice
 - admin can manage products and user roles
 - public shop: browse, search, cart, guest checkout
-- mock payments: cash on delivery or online demo gateway
+- mock payments: cash on delivery or online sandbox gateway (request → bank page → callback → verify)
 - order tracking for customers (`/shop/track`)
 - UI is RTL / Persian
 
@@ -44,4 +44,5 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- real payment gateway
+- hook a real merchant gateway (Zarinpal / similar) with live keys
+- SMS provider instead of on-screen OTP
