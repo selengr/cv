@@ -25,4 +25,8 @@ export default interface Order {
   created_at: string;
   paymentMethod?: "online" | "cod";
   paid_at?: string;
+  /** Sandbox gateway authority (Zarinpal-shaped) */
+  authority?: string;
+  /** Payment confirmation code after verify */
+  refId?: string;
 }
