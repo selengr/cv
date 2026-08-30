@@ -399,6 +399,24 @@ export function handleLocalRequest(
     return ok(config, { order });
   }
 
+  if (method === "POST" && path === "/shop/orders/track") {
+    const orderId = Number(body.orderId);
+    const phone = normalizeIranianPhone(String(body.phone ?? ""));
+    if (!Number.isFinite(orderId) || orderId < 1) {
+      throw fail(config, 422, { errors: { orderId: "شماره سفارش درست نیست" } });
+    }
+    if (!iranianPhoneRegExp.test(phone)) {
+      throw fail(config, 422, { errors: { phone: "شماره موبایل درست نیست" } });
+    }
+    const order = getOrders().find((item) => item.id === orderId);
+    if (!order || order.customerPhone !== phone) {
+      throw fail(config, 422, {
+        errors: { orderId: "سفارش با این شماره پیدا نشد" },
+      });
+    }
+    return ok(config, { order });
+  }
+
   const payMatch = path.match(/^\/orders\/(\d+)\/pay$/);
   if (method === "POST" && payMatch) {
     const id = Number(payMatch[1]);
