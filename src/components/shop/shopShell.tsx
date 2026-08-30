@@ -24,6 +24,9 @@ export default function ShopShell({
                 </span>
               )}
             </Link>
+            <Link href="/shop/track" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+              پیگیری
+            </Link>
             <Link href="/panel" className="rounded-full px-3 py-1.5 hover:bg-white/80">
               پنل
             </Link>
