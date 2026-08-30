@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import ShopShell from "@/components/shop/shopShell";
 import LoadingBox from "@/components/shared/loadingBox";
 import ProductThumb from "@/components/shared/productThumb";
-import { GetShopOrder, PayOrder } from "@/services/payment";
+import { GetShopOrder, RequestShopPayment } from "@/services/payment";
 import { formatToman } from "@/helpers/catalog";
 import { formatDay, statusLabel } from "@/helpers/orders";
 import ValidationError from "@/exceptions/validationError";
@@ -20,34 +20,27 @@ export default function ShopPayPage({
 }) {
   const { orderId } = use(params);
   const router = useRouter();
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading } = useSWR(
     { url: `/shop/pay/${orderId}`, orderId: Number(orderId) },
     ({ orderId: id }) => GetShopOrder(id),
   );
-  const [card, setCard] = useState("6037 9918 1234 5678");
   const [saving, setSaving] = useState(false);
   const order = data?.order;
 
-  const pay = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const goGateway = async () => {
     if (!order) return;
-    if (card.replace(/\s/g, "").length < 16) {
-      toast.error("شماره کارت را کامل بنویس");
-      return;
-    }
     setSaving(true);
     try {
-      await PayOrder(order.id, "online");
-      await mutate();
-      toast.success("پرداخت آزمایشی انجام شد");
+      const payment = await RequestShopPayment(order.id);
+      router.push(payment.redirectUrl);
     } catch (err) {
       if (err instanceof ValidationError) {
         const first = Object.values(err.messages)[0];
         const message = Array.isArray(first) ? first[0] : first;
-        toast.error(String(message ?? "پرداخت نشد"));
+        toast.error(String(message ?? "درگاه باز نشد"));
         return;
       }
-      toast.error("پرداخت نشد");
+      toast.error("درگاه باز نشد");
     } finally {
       setSaving(false);
     }
@@ -126,7 +119,10 @@ export default function ShopPayPage({
                 پرداخت شد
               </h2>
               <p className="mt-2 text-sm text-[#5c564d]">
-                این سفارش دیگر نیازی به پرداخت ندارد. فروشنده در پنل می‌بیندش.
+                این سفارش دیگر نیازی به پرداخت ندارد.
+                {order.refId
+                  ? ` کد پیگیری درگاه: ${order.refId}`
+                  : " فروشنده در پنل می‌بیندش."}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
@@ -144,42 +140,23 @@ export default function ShopPayPage({
               </div>
             </div>
           ) : (
-            <form onSubmit={pay}>
-              <h2 className="font-display text-lg font-semibold">درگاه آزمایشی</h2>
+            <div>
+              <h2 className="font-display text-lg font-semibold">درگاه آنلاین</h2>
               <p className="mt-2 text-sm text-[#5c564d]">
-                پول واقعی کم نمی‌شود. فقط برای دمو است.
+                مثل زرین‌پال: اول درخواست، بعد صفحه بانک آزمایشی، بعد تایید
+                پرداخت. پول واقعی کم نمی‌شود.
               </p>
-              <label className="mt-4 block text-sm">
-                شماره کارت
-                <input
-                  value={card}
-                  onChange={(event) => setCard(event.target.value)}
-                  dir="ltr"
-                  className="mt-1 w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
-                />
-              </label>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <input
-                  placeholder="MM/YY"
-                  defaultValue="12/28"
-                  dir="ltr"
-                  className="rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
-                />
-                <input
-                  placeholder="CVV2"
-                  defaultValue="123"
-                  dir="ltr"
-                  className="rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
-                />
-              </div>
               <button
-                type="submit"
+                type="button"
+                onClick={goGateway}
                 disabled={saving}
                 className="mt-4 w-full rounded-full bg-[#1f4a45] px-4 py-2.5 text-sm text-white disabled:opacity-50"
               >
-                {saving ? "در حال پرداخت..." : `پرداخت ${formatToman(order.total)}`}
+                {saving
+                  ? "در حال انتقال..."
+                  : `پرداخت ${formatToman(order.total)}`}
               </button>
-            </form>
+            </div>
           )}
         </div>
       </div>
