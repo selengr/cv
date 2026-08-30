@@ -119,6 +119,7 @@ export default function OrderDetail({
               <p className="mt-3 text-sm text-[#5c564d]">
                 پرداخت: {paymentLabel(order.paymentMethod)}
                 {order.paid_at ? " · انجام شد" : ""}
+                {order.refId ? ` · Ref ${order.refId}` : ""}
               </p>
             )}
             {order.note && (
