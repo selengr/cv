@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "react-toastify";
@@ -119,7 +120,10 @@ export default function ShopPage() {
 
       {placedId && paymentMethod !== "online" && (
         <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          سفارش #{placedId.toLocaleString("fa-IR")} ثبت شد. فروشنده در پنل می‌بیندش.
+          سفارش #{placedId.toLocaleString("fa-IR")} ثبت شد. فروشنده در پنل می‌بیندش.{" "}
+          <Link href="/shop/track" className="underline underline-offset-2">
+            پیگیری سفارش
+          </Link>
         </div>
       )}
 
