@@ -79,6 +79,11 @@ export default function Invoice({
             <p className="mt-1">
               {orderItemCount(order.items).toLocaleString("fa-IR")} قلم
             </p>
+            {order.refId && (
+              <p className="mt-2 text-xs text-[#6b6459]" dir="ltr">
+                RefID {order.refId}
+              </p>
+            )}
           </div>
         </section>
 
