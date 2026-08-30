@@ -2,6 +2,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { nextStatuses } from "@/helpers/orders";
+import { makeAuthority, makeRefId } from "@/helpers/payments";
 import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
 import type { ShopRole } from "@/helpers/roles";
 import type { OrderItem, OrderStatus } from "@/models/order";
@@ -417,6 +418,98 @@ export function handleLocalRequest(
     return ok(config, { order });
   }
 
+  const paymentRequestMatch = path.match(
+    /^\/shop\/orders\/(\d+)\/payment\/request$/,
+  );
+  if (method === "POST" && paymentRequestMatch) {
+    const id = Number(paymentRequestMatch[1]);
+    const orders = getOrders();
+    const index = orders.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = orders[index];
+    if (current.status === "cancelled") {
+      throw fail(config, 422, { errors: { status: "سفارش لغو شده" } });
+    }
+    if (current.status !== "pending") {
+      throw fail(config, 422, { errors: { status: "قبلا پرداخت شده" } });
+    }
+    const authority = current.authority ?? makeAuthority();
+    orders[index] = {
+      ...current,
+      paymentMethod: "online",
+      authority,
+    };
+    saveOrders(orders);
+    return ok(config, {
+      authority,
+      amount: current.total,
+      orderId: current.id,
+      redirectUrl: `/shop/gateway/${encodeURIComponent(authority)}`,
+    });
+  }
+
+  const paymentGetMatch = path.match(/^\/shop\/payments\/([^/]+)$/);
+  if (method === "GET" && paymentGetMatch) {
+    const authority = decodeURIComponent(paymentGetMatch[1]);
+    const order = getOrders().find((item) => item.authority === authority);
+    if (!order) throw fail(config, 404, { message: "not found" });
+    return ok(config, {
+      authority,
+      amount: order.total,
+      orderId: order.id,
+      customerName: order.customerName,
+      status: order.status,
+      paid: order.status !== "pending" && order.status !== "cancelled",
+    });
+  }
+
+  if (method === "POST" && path === "/shop/payments/verify") {
+    const authority = String(body.Authority ?? body.authority ?? "");
+    const status = String(body.Status ?? body.status ?? "").toUpperCase();
+    if (!authority) {
+      throw fail(config, 422, { errors: { Authority: "کد تراکنش نیست" } });
+    }
+    const orders = getOrders();
+    const index = orders.findIndex((item) => item.authority === authority);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = orders[index];
+
+    if (status !== "OK") {
+      return ok(config, {
+        verified: false,
+        order: current,
+        message: "پرداخت لغو یا ناموفق بود",
+      });
+    }
+
+    if (current.status === "cancelled") {
+      throw fail(config, 422, { errors: { status: "سفارش لغو شده" } });
+    }
+
+    if (current.status !== "pending") {
+      return ok(config, {
+        verified: true,
+        order: current,
+        refId: current.refId,
+      });
+    }
+
+    const refId = makeRefId();
+    orders[index] = {
+      ...current,
+      status: "paid",
+      paymentMethod: "online",
+      paid_at: new Date().toISOString(),
+      refId,
+    };
+    saveOrders(orders);
+    return ok(config, {
+      verified: true,
+      order: orders[index],
+      refId,
+    });
+  }
+
   const payMatch = path.match(/^\/orders\/(\d+)\/pay$/);
   if (method === "POST" && payMatch) {
     const id = Number(payMatch[1]);
@@ -437,6 +530,12 @@ export function handleLocalRequest(
       status: "paid",
       paymentMethod: methodName,
       paid_at: new Date().toISOString(),
+      ...(methodName === "online"
+        ? {
+            authority: current.authority ?? makeAuthority(),
+            refId: current.refId ?? makeRefId(),
+          }
+        : {}),
     };
     saveOrders(orders);
     return ok(config, { order: orders[index] });
