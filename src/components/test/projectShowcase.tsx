@@ -109,6 +109,7 @@ export default function ProjectShowcase() {
             {[
               { href: "/", title: "خانه", body: "لندینگ" },
               { href: "/shop", title: "فروشگاه", body: "ویترین عمومی، سبد، سفارش مهمان" },
+              { href: "/shop/products/1", title: "جزئیات محصول", body: "نظر و امتیاز خریداران" },
               { href: "/shop/track", title: "پیگیری سفارش", body: "وضعیت با شماره سفارش و موبایل" },
               { href: "/shop/pay/1", title: "پرداخت", body: "خلاصه سفارش و ورود به درگاه" },
               { href: "/auth/register", title: "ثبت‌نام", body: "اسم و موبایل" },
