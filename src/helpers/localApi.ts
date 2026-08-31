@@ -3,12 +3,14 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { nextStatuses } from "@/helpers/orders";
 import { makeAuthority, makeRefId } from "@/helpers/payments";
+import { deliverOtpSms, shouldShowOtpHint } from "@/helpers/sms";
 import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
 import type { ShopRole } from "@/helpers/roles";
 import type { OrderItem, OrderStatus } from "@/models/order";
 import {
   ADMIN_PERMISSIONS,
   clearPendingOtp,
+  clearOtpHint,
   clearSession,
   getPendingOtp,
   getProducts,
@@ -83,9 +85,9 @@ function fail(
   );
 }
 
-export function handleLocalRequest(
+export async function handleLocalRequest(
   config: InternalAxiosRequestConfig,
-): AxiosResponse | null {
+): Promise<AxiosResponse | null> {
   const method = (config.method ?? "get").toUpperCase();
   const { path, search } = pathOf(config);
   const body = bodyOf(config);
@@ -127,8 +129,18 @@ export function handleLocalRequest(
     const token = randomToken();
     const code = randomOtp();
     savePendingOtp({ token, phone, code });
-    saveOtpHint(code);
-    return ok(config, { token, debug_code: code });
+
+    const delivery = await deliverOtpSms(phone, code);
+    const showHint = shouldShowOtpHint(delivery.sent);
+    if (showHint) saveOtpHint(code);
+    else clearOtpHint();
+
+    return ok(config, {
+      token,
+      debug_code: showHint ? code : undefined,
+      sms_sent: delivery.sent,
+      sms_provider: delivery.provider,
+    });
   }
 
   if (method === "POST" && path === "/auth/login/verify-phone") {
@@ -448,6 +460,31 @@ export function handleLocalRequest(
     });
   }
 
+  const paymentBindMatch = path.match(
+    /^\/shop\/orders\/(\d+)\/payment\/bind$/,
+  );
+  if (method === "POST" && paymentBindMatch) {
+    const id = Number(paymentBindMatch[1]);
+    const authority = String(body.authority ?? "").trim();
+    if (!authority) {
+      throw fail(config, 422, { errors: { authority: "کد تراکنش نیست" } });
+    }
+    const orders = getOrders();
+    const index = orders.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = orders[index];
+    if (current.status !== "pending") {
+      throw fail(config, 422, { errors: { status: "قبلا پرداخت شده" } });
+    }
+    orders[index] = {
+      ...current,
+      paymentMethod: "online",
+      authority,
+    };
+    saveOrders(orders);
+    return ok(config, { order: orders[index] });
+  }
+
   const paymentGetMatch = path.match(/^\/shop\/payments\/([^/]+)$/);
   if (method === "GET" && paymentGetMatch) {
     const authority = decodeURIComponent(paymentGetMatch[1]);
@@ -494,7 +531,7 @@ export function handleLocalRequest(
       });
     }
 
-    const refId = makeRefId();
+    const refId = String(body.refId ?? "").trim() || makeRefId();
     orders[index] = {
       ...current,
       status: "paid",

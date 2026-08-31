@@ -39,6 +39,8 @@ const FormikLoginForm = withFormik<LoginFormProps, LoginFormValuesInterface>({
         props.setToken(token);
         if (debugCode) {
           toast.info(`کد تایید: ${debugCode}`);
+        } else if (res.data?.sms_sent) {
+          toast.success("کد تایید پیامک شد");
         }
         props.router.push("/auth/login/step-two");
         return;

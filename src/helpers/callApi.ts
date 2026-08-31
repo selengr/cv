@@ -10,7 +10,7 @@ const callApi = () => {
     withCredentials: true,
     adapter: async (config) => {
       if (useLocalAuth) {
-        const local = handleLocalRequest(config);
+        const local = await handleLocalRequest(config);
         if (local) return local;
       }
 

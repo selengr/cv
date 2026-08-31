@@ -40,7 +40,9 @@ export default function PhoneVerifyPage() {
         کد تایید
       </h1>
       <p className="mt-2 text-center text-sm text-[#6b6459]">
-        کدی که ساخته شد را وارد کن
+        {otpHint
+          ? "کدی که ساخته شد را وارد کن"
+          : "کد پیامک‌شده را وارد کن"}
       </p>
       {otpHint && (
         <p className="mt-3 rounded-full bg-[#1f4a45]/10 px-4 py-2 text-center text-sm text-[#1f4a45]">
