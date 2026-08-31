@@ -11,6 +11,7 @@ import ProductThumb from "@/components/shared/productThumb";
 import { GetShopOrder, RequestShopPayment } from "@/services/payment";
 import { formatToman } from "@/helpers/catalog";
 import { formatDay, statusLabel } from "@/helpers/orders";
+import { paymentDriver } from "@/helpers/payments";
 import ValidationError from "@/exceptions/validationError";
 
 export default function ShopPayPage({
@@ -147,8 +148,9 @@ export default function ShopPayPage({
             <div>
               <h2 className="font-display text-lg font-semibold">درگاه آنلاین</h2>
               <p className="mt-2 text-sm text-[#5c564d]">
-                مثل زرین‌پال: اول درخواست، بعد صفحه بانک آزمایشی، بعد تایید
-                پرداخت. پول واقعی کم نمی‌شود.
+                {paymentDriver() === "zarinpal"
+                  ? "پرداخت از طریق زرین‌پال. بعد از بانک به همین فروشگاه برمی‌گردی."
+                  : "مثل زرین‌پال: درخواست، صفحه بانک آزمایشی، بعد تایید. پول واقعی کم نمی‌شود."}
               </p>
               <button
                 type="button"
