@@ -22,6 +22,7 @@ import {
 } from "@/helpers/cart";
 import { productMatchesQuery } from "@/helpers/search";
 import { PAYMENT_METHODS, type PaymentMethod } from "@/helpers/payments";
+import { formatStars } from "@/helpers/reviews";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";
@@ -185,25 +186,45 @@ export default function ShopPage() {
                       {categoryLabel(product.category)}
                     </p>
                     <h2 className="font-display mt-1 text-lg font-semibold">
-                      {product.title}
+                      <Link
+                        href={`/shop/products/${product.id}`}
+                        className="hover:text-[#1f4a45]"
+                      >
+                        {product.title}
+                      </Link>
                     </h2>
                     <p className="mt-1 line-clamp-2 text-sm text-[#6b6459]">
                       {product.body}
                     </p>
+                    {(product.reviewCount ?? 0) > 0 && (
+                      <p className="mt-2 text-xs text-amber-800">
+                        {formatStars(product.ratingAvg ?? 0)}{" "}
+                        {(product.ratingAvg ?? 0).toLocaleString("fa-IR")} ·{" "}
+                        {(product.reviewCount ?? 0).toLocaleString("fa-IR")} نظر
+                      </p>
+                    )}
                     <div className="mt-auto flex items-center justify-between pt-4">
                       <p className="text-sm font-medium">{formatToman(product.price)}</p>
                       <span className="text-xs text-[#6b6459]">
                         {stock.toLocaleString("fa-IR")} عدد
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      disabled={stock < 1}
-                      onClick={() => onAdd(product)}
-                      className="mt-3 rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-40"
-                    >
-                      {stock < 1 ? "ناموجود" : "افزودن به سبد"}
-                    </button>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={stock < 1}
+                        onClick={() => onAdd(product)}
+                        className="flex-1 rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-40"
+                      >
+                        {stock < 1 ? "ناموجود" : "افزودن به سبد"}
+                      </button>
+                      <Link
+                        href={`/shop/products/${product.id}`}
+                        className="rounded-full px-3 py-2 text-sm ring-1 ring-[#14110e]/15"
+                      >
+                        نظرها
+                      </Link>
+                    </div>
                   </article>
                 );
               })}
