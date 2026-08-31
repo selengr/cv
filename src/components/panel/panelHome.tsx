@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import useSWR from "swr";
+import { toast } from "react-toastify";
 import { GetProducts } from "@/services/product";
 import { GetOrders } from "@/services/order";
+import {
+  GetStockAlerts,
+  MarkAllStockAlertsRead,
+  MarkStockAlertRead,
+} from "@/services/stockAlert";
 import useAuth from "@/hooks/useAuth";
 import User from "@/models/user";
 import ProductCard from "@/components/panel/productCard";
@@ -11,6 +17,7 @@ import OrderStatusBadge from "@/components/orders/orderStatusBadge";
 import LoadingBox from "@/components/shared/loadingBox";
 import { formatToman } from "@/helpers/catalog";
 import { formatDay } from "@/helpers/orders";
+import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type Product from "@/models/product";
 
 const OPEN_STATUSES = new Set(["pending", "paid", "packed"]);
@@ -24,14 +31,32 @@ export default function PanelHome() {
     GetProducts,
   );
   const { data: orders } = useSWR("orders", GetOrders);
+  const { data: alerts, mutate: mutateAlerts } = useSWR(
+    "stock-alerts",
+    GetStockAlerts,
+  );
   const products: Product[] = data?.products ?? [];
   const loading = !data && !error;
   const totalStock = products.reduce((sum, item) => sum + (item.stock ?? 0), 0);
-  const lowStock = products.filter((item) => (item.stock ?? 0) <= 5);
+  const lowStock = products.filter(
+    (item) => (item.stock ?? 0) <= STOCK_ALERT_THRESHOLD,
+  );
   const openOrders = (orders ?? []).filter((item) => OPEN_STATUSES.has(item.status));
   const sales = (orders ?? [])
     .filter((item) => SALES_STATUSES.has(item.status))
     .reduce((sum, item) => sum + item.total, 0);
+  const unreadAlerts = (alerts ?? []).filter((item) => !item.read);
+
+  const markOne = async (alertId: number) => {
+    await MarkStockAlertRead(alertId);
+    await mutateAlerts();
+  };
+
+  const markAll = async () => {
+    await MarkAllStockAlertsRead();
+    await mutateAlerts();
+    toast.success("همه هشدارها خوانده شد");
+  };
 
   return (
     <div>
@@ -40,6 +65,54 @@ export default function PanelHome() {
       <p className="mt-2 max-w-xl text-sm text-[#5c564d]">
         محصولات نمونه و چند سفارش آماده است. وضعیت سفارش را عوض کن یا یکی دستی ثبت کن.
       </p>
+
+      {unreadAlerts.length > 0 && (
+        <div className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/90 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-semibold">هشدار موجودی</h2>
+              <p className="mt-1 text-sm text-[#5c564d]">
+                {unreadAlerts.length.toLocaleString("fa-IR")} مورد خوانده‌نشده (آستانه{" "}
+                {STOCK_ALERT_THRESHOLD.toLocaleString("fa-IR")} عدد)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={markAll}
+              className="rounded-full px-3 py-1.5 text-sm ring-1 ring-amber-300"
+            >
+              همه را خواندم
+            </button>
+          </div>
+          <ul className="mt-3 space-y-2 text-sm">
+            {unreadAlerts.slice(0, 5).map((alert) => (
+              <li
+                key={alert.id}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 px-3 py-2"
+              >
+                <span>
+                  {alert.title}
+                  <span className="mr-2 text-xs text-[#6b6459]">
+                    {formatDay(alert.created_at)}
+                  </span>
+                </span>
+                <span className="flex items-center gap-3">
+                  <span className="text-amber-800">
+                    {alert.stock.toLocaleString("fa-IR")} عدد
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => markOne(alert.id)}
+                    className="text-xs text-[#1f4a45]"
+                  >
+                    خواندم
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-3xl bg-white/85 p-5 shadow-sm">
@@ -124,7 +197,7 @@ export default function PanelHome() {
         <div className="mt-10 rounded-3xl border border-amber-200 bg-amber-50/80 p-5">
           <h2 className="font-display text-lg font-semibold">موجودی کم</h2>
           <p className="mt-1 text-sm text-[#5c564d]">
-            این‌ها پنج تا یا کمتر مانده‌اند.
+            این‌ها {STOCK_ALERT_THRESHOLD.toLocaleString("fa-IR")} تا یا کمتر مانده‌اند.
           </p>
           <ul className="mt-3 space-y-2 text-sm">
             {lowStock.map((item) => (
