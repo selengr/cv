@@ -3,6 +3,7 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { nextStatuses } from "@/helpers/orders";
 import { makeAuthority, makeRefId } from "@/helpers/payments";
+import { averageRating, clampRating } from "@/helpers/reviews";
 import { deliverOtpSms, shouldShowOtpHint } from "@/helpers/sms";
 import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
 import type { ShopRole } from "@/helpers/roles";
@@ -15,17 +16,22 @@ import {
   getPendingOtp,
   getProducts,
   getOrders,
+  getReviews,
   getSession,
+  getStockAlerts,
   getUsers,
   nextId,
   publicUser,
   randomOtp,
   randomToken,
+  recordLowStockAlerts,
   saveOtpHint,
   saveOrders,
   savePendingOtp,
   saveProducts,
+  saveReviews,
   saveSession,
+  saveStockAlerts,
   saveUsers,
 } from "@/helpers/localDb";
 
@@ -302,6 +308,7 @@ export async function handleLocalRequest(
       image: String(body.image ?? products[index].image ?? "").trim() || undefined,
     };
     saveProducts(products);
+    recordLowStockAlerts([products[index]]);
     return ok(config, { product: products[index] });
   }
 
@@ -315,7 +322,78 @@ export async function handleLocalRequest(
   }
 
   if (method === "GET" && path === "/shop/products") {
-    return ok(config, { products: getProducts() });
+    const reviews = getReviews();
+    const products = getProducts().map((product) => {
+      const list = reviews.filter((item) => item.productId === product.id);
+      return {
+        ...product,
+        ratingAvg: averageRating(list),
+        reviewCount: list.length,
+      };
+    });
+    return ok(config, { products });
+  }
+
+  const shopProductMatch = path.match(/^\/shop\/products\/(\d+)$/);
+  if (method === "GET" && shopProductMatch) {
+    const id = Number(shopProductMatch[1]);
+    const product = getProducts().find((item) => item.id === id);
+    if (!product) throw fail(config, 404, { message: "not found" });
+    const list = getReviews().filter((item) => item.productId === id);
+    return ok(config, {
+      product: {
+        ...product,
+        ratingAvg: averageRating(list),
+        reviewCount: list.length,
+      },
+    });
+  }
+
+  const shopReviewsMatch = path.match(/^\/shop\/products\/(\d+)\/reviews$/);
+  if (method === "GET" && shopReviewsMatch) {
+    const id = Number(shopReviewsMatch[1]);
+    const product = getProducts().find((item) => item.id === id);
+    if (!product) throw fail(config, 404, { message: "not found" });
+    const reviews = getReviews()
+      .filter((item) => item.productId === id)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return ok(config, {
+      reviews,
+      ratingAvg: averageRating(reviews),
+      reviewCount: reviews.length,
+    });
+  }
+
+  if (method === "POST" && shopReviewsMatch) {
+    const id = Number(shopReviewsMatch[1]);
+    const product = getProducts().find((item) => item.id === id);
+    if (!product) throw fail(config, 404, { message: "not found" });
+
+    const authorName = String(body.authorName ?? "").trim();
+    const rating = clampRating(Number(body.rating ?? 0));
+    const reviewBody = String(body.body ?? "").trim();
+
+    if (authorName.length < 2) {
+      throw fail(config, 422, { errors: { authorName: "نام را بنویس" } });
+    }
+    if (!Number.isFinite(Number(body.rating)) || Number(body.rating) < 1) {
+      throw fail(config, 422, { errors: { rating: "امتیاز ۱ تا ۵ بده" } });
+    }
+    if (reviewBody.length < 3) {
+      throw fail(config, 422, { errors: { body: "نظر کوتاه است" } });
+    }
+
+    const reviews = getReviews();
+    const review = {
+      id: nextId(reviews),
+      productId: id,
+      authorName,
+      rating,
+      body: reviewBody,
+      created_at: new Date().toISOString(),
+    };
+    saveReviews([review, ...reviews]);
+    return ok(config, { review }, 201);
   }
 
   if (method === "GET" && path === "/orders") {
@@ -384,6 +462,7 @@ export async function handleLocalRequest(
       return { ...product, stock: (product.stock ?? 0) - taken.qty };
     });
     saveProducts(nextProducts);
+    recordLowStockAlerts(nextProducts);
 
     const paymentMethod =
       String(body.paymentMethod ?? "cod") === "online" ? "online" : "cod";
@@ -613,6 +692,33 @@ export async function handleLocalRequest(
     };
     saveOrders(orders);
     return ok(config, { order: orders[index] });
+  }
+
+  if (method === "GET" && path === "/stock-alerts") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { alerts: getStockAlerts() });
+  }
+
+  const alertReadMatch = path.match(/^\/stock-alerts\/(\d+)\/read$/);
+  if (method === "POST" && alertReadMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(alertReadMatch[1]);
+    const alerts = getStockAlerts();
+    const index = alerts.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    alerts[index] = { ...alerts[index], read: true };
+    saveStockAlerts(alerts);
+    return ok(config, { alert: alerts[index] });
+  }
+
+  if (method === "POST" && path === "/stock-alerts/read-all") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const alerts = getStockAlerts().map((item) => ({ ...item, read: true }));
+    saveStockAlerts(alerts);
+    return ok(config, { alerts });
   }
 
   if (method === "POST" && path === "/auth/logout") {
