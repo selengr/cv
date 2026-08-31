@@ -32,6 +32,10 @@ export default function ShopPayPage({
     setSaving(true);
     try {
       const payment = await RequestShopPayment(order.id);
+      if (payment.redirectUrl.startsWith("http")) {
+        window.location.assign(payment.redirectUrl);
+        return;
+      }
       router.push(payment.redirectUrl);
     } catch (err) {
       if (err instanceof ValidationError) {

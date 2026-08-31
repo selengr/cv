@@ -12,17 +12,37 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 
 ## What it does
 
-- sign up / login with phone + SMS code
+- sign up / login with phone + SMS code (local hint or Kavenegar)
 - seller panel
 - catalog: products, photos, categories, stock
 - orders: status flow, manual orders, printable invoice
 - admin can manage products and user roles
 - public shop: browse, search, cart, guest checkout
-- mock payments: cash on delivery or online sandbox gateway (request → bank page → callback → verify)
+- payments: COD, in-app sandbox gateway, or Zarinpal when configured
 - order tracking for customers (`/shop/track`)
 - UI is RTL / Persian
 
 By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen. Public shop is at `/shop`.
+
+### Optional: Kavenegar SMS
+
+```
+SMS_PROVIDER=kavenegar
+KAVENEGAR_API_KEY=your-key
+KAVENEGAR_SENDER=10008663
+NEXT_PUBLIC_SHOW_OTP_HINT=false
+```
+
+### Optional: Zarinpal
+
+```
+NEXT_PUBLIC_PAYMENT_DRIVER=zarinpal
+ZARINPAL_MERCHANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+ZARINPAL_SANDBOX=true
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Use Zarinpal's sandbox merchant for local tests. Callback is `/shop/pay/callback`. For a phone to reach localhost you may need a tunnel and set `NEXT_PUBLIC_APP_URL` to that URL.
 
 If you later hook a real API, set `NEXT_PUBLIC_LOCAL_AUTH=false` and:
 
@@ -44,5 +64,5 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- hook a real merchant gateway (Zarinpal / similar) with live keys
-- SMS provider instead of on-screen OTP
+- product reviews / ratings
+- stock alerts for sellers
