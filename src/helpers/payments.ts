@@ -13,7 +13,7 @@ export const PAYMENT_METHODS: {
   {
     value: "online",
     label: "پرداخت آنلاین",
-    hint: "درگاه آزمایشی — پول واقعی کم نمی‌شود",
+    hint: "درگاه آزمایشی یا زرین‌پال (با کلید env)",
   },
 ];
 
@@ -42,3 +42,6 @@ export function callbackPath(authority: string, status: "OK" | "NOK") {
   const query = new URLSearchParams({ Authority: authority, Status: status });
   return `/shop/pay/callback?${query.toString()}`;
 }
+
+export { paymentDriver } from "@/lib/zarinpal/config";
+export type { PaymentDriver } from "@/lib/zarinpal/config";
