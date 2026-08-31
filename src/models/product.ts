@@ -9,4 +9,6 @@ export default interface Product {
   stock?: number;
   emoji?: string;
   image?: string;
+  ratingAvg?: number;
+  reviewCount?: number;
 }
