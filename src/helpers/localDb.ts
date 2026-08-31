@@ -1,12 +1,17 @@
 import type { UserType } from "@/models/user";
 import type Product from "@/models/product";
 import type Order from "@/models/order";
+import type Review from "@/models/review";
+import type { StockAlert } from "@/helpers/stockAlerts";
+import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "6";
+const DATA_VERSION = "7";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
+const REVIEWS_KEY = "shopy_reviews";
+const STOCK_ALERTS_KEY = "shopy_stock_alerts";
 const SESSION_KEY = "shopy_session";
 const OTP_KEY = "shopy_otp";
 export const OTP_HINT_KEY = "shopy_otp_hint";
@@ -314,6 +319,36 @@ function seedOrders(): Order[] {
   ];
 }
 
+function seedReviews(): Review[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: 1,
+      productId: 1,
+      authorName: "نرگس",
+      rating: 5,
+      body: "کیفیت خوب بود، سایز هم درست درآمد.",
+      created_at: now,
+    },
+    {
+      id: 2,
+      productId: 1,
+      authorName: "امیر",
+      rating: 4,
+      body: "راحت بود، فقط کمی دیر رسید.",
+      created_at: now,
+    },
+    {
+      id: 3,
+      productId: 2,
+      authorName: "سارا",
+      rating: 5,
+      body: "چرمش عالی است.",
+      created_at: now,
+    },
+  ];
+}
+
 export function getUsers(): StoredUser[] {
   ensureSeed();
   const users = readJson<StoredUser[]>(USERS_KEY, []);
@@ -345,6 +380,8 @@ function ensureSeed() {
   if (localStorage.getItem(DATA_VERSION_KEY) === DATA_VERSION) return;
   writeJson(PRODUCTS_KEY, seedProducts());
   writeJson(ORDERS_KEY, seedOrders());
+  writeJson(REVIEWS_KEY, seedReviews());
+  writeJson(STOCK_ALERTS_KEY, []);
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
@@ -367,6 +404,60 @@ export function saveOrders(orders: Order[]) {
 
 export function saveProducts(products: Product[]) {
   writeJson(PRODUCTS_KEY, products);
+}
+
+export function getReviews(): Review[] {
+  ensureSeed();
+  const reviews = readJson<Review[] | null>(REVIEWS_KEY, null);
+  if (!reviews) {
+    const seeded = seedReviews();
+    writeJson(REVIEWS_KEY, seeded);
+    return seeded;
+  }
+  return reviews;
+}
+
+export function saveReviews(reviews: Review[]) {
+  writeJson(REVIEWS_KEY, reviews);
+}
+
+export function getStockAlerts(): StockAlert[] {
+  ensureSeed();
+  return readJson<StockAlert[]>(STOCK_ALERTS_KEY, []);
+}
+
+export function saveStockAlerts(alerts: StockAlert[]) {
+  writeJson(STOCK_ALERTS_KEY, alerts);
+}
+
+/** Create an unread alert when stock crosses into the low range. */
+export function recordLowStockAlerts(products: Product[]) {
+  const alerts = getStockAlerts();
+  let next = [...alerts];
+  let changed = false;
+
+  for (const product of products) {
+    const stock = product.stock ?? 0;
+    if (stock > STOCK_ALERT_THRESHOLD) continue;
+    const hasOpen = next.some(
+      (alert) => alert.productId === product.id && !alert.read,
+    );
+    if (hasOpen) continue;
+    next = [
+      {
+        id: nextId(next),
+        productId: product.id,
+        title: product.title,
+        stock,
+        created_at: new Date().toISOString(),
+        read: false,
+      },
+      ...next,
+    ].slice(0, 40);
+    changed = true;
+  }
+
+  if (changed) saveStockAlerts(next);
 }
 
 export function getSession(): Session | null {
