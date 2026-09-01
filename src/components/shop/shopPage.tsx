@@ -20,6 +20,13 @@ import {
   setCartQty,
   subscribeCart,
 } from "@/helpers/cart";
+import {
+  isInWishlist,
+  readWishlist,
+  subscribeWishlist,
+  toggleWishlist,
+  wishlistCount,
+} from "@/helpers/wishlist";
 import { productMatchesQuery } from "@/helpers/search";
 import { PAYMENT_METHODS, type PaymentMethod } from "@/helpers/payments";
 import { formatStars } from "@/helpers/reviews";
@@ -31,6 +38,7 @@ export default function ShopPage() {
   const router = useRouter();
   const { data, error, mutate } = useSWR("shop/products", GetShopProducts);
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
+  const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
@@ -109,7 +117,7 @@ export default function ShopPage() {
   };
 
   return (
-    <ShopShell cartCount={cartCount(lines)}>
+    <ShopShell cartCount={cartCount(lines)} wishCount={wishlistCount(wish)}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">فروشگاه</h1>
@@ -217,6 +225,25 @@ export default function ShopPage() {
                         className="flex-1 rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-40"
                       >
                         {stock < 1 ? "ناموجود" : "افزودن به سبد"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = toggleWishlist(product);
+                          toast.success(
+                            isInWishlist(product.id, next)
+                              ? "به علاقه‌مندی‌ها اضافه شد"
+                              : "از علاقه‌مندی‌ها برداشته شد",
+                          );
+                        }}
+                        className={`rounded-full px-3 py-2 text-sm ring-1 ${
+                          isInWishlist(product.id, wish)
+                            ? "bg-[#1f4a45]/10 text-[#1f4a45] ring-[#1f4a45]/20"
+                            : "ring-[#14110e]/15"
+                        }`}
+                        aria-label="علاقه‌مندی"
+                      >
+                        {isInWishlist(product.id, wish) ? "♥" : "♡"}
                       </button>
                       <Link
                         href={`/shop/products/${product.id}`}
