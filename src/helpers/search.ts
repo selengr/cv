@@ -16,7 +16,9 @@ export function productMatchesQuery(product: Product, query: string) {
   const haystack = normalizeSearch(
     [
       product.title,
+      product.title_en ?? "",
       product.body,
+      product.body_en ?? "",
       categoryLabel(product.category),
       product.emoji ?? "",
     ].join(" "),
