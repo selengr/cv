@@ -4,14 +4,16 @@ import type Order from "@/models/order";
 import type Review from "@/models/review";
 import type { StockAlert } from "@/helpers/stockAlerts";
 import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
+import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "7";
+const DATA_VERSION = "8";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
 const REVIEWS_KEY = "shopy_reviews";
 const STOCK_ALERTS_KEY = "shopy_stock_alerts";
+const NOTIFICATIONS_KEY = "shopy_order_notifications";
 const SESSION_KEY = "shopy_session";
 const OTP_KEY = "shopy_otp";
 export const OTP_HINT_KEY = "shopy_otp_hint";
@@ -77,8 +79,10 @@ function seedProducts(): Product[] {
     {
       id: 1,
       title: "کفش اسپرت سفید",
+      title_en: "White sport shoes",
       category: "2",
       body: "کفش روزمره، سبک و مناسب پیاده‌روی",
+      body_en: "Everyday sneakers, light and good for walking",
       price: 1280000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -89,8 +93,10 @@ function seedProducts(): Product[] {
     {
       id: 2,
       title: "کیف چرم دستی",
+      title_en: "Leather handbag",
       category: "2",
       body: "کیف چرم طبیعی برای استفاده روزانه",
+      body_en: "Natural leather bag for daily use",
       price: 2450000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -101,8 +107,10 @@ function seedProducts(): Product[] {
     {
       id: 3,
       title: "تیشرت نخی",
+      title_en: "Cotton t-shirt",
       category: "1",
       body: "تیشرت ساده نخی، چند رنگ",
+      body_en: "Simple cotton tee in several colors",
       price: 320000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -113,8 +121,10 @@ function seedProducts(): Product[] {
     {
       id: 4,
       title: "شلوار جین",
+      title_en: "Denim jeans",
       category: "1",
       body: "جین راسته، سایزهای مختلف",
+      body_en: "Straight jeans in multiple sizes",
       price: 890000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -125,8 +135,10 @@ function seedProducts(): Product[] {
     {
       id: 5,
       title: "کلاه کپ",
+      title_en: "Cap hat",
       category: "3",
       body: "کلاه نخی تابستانه",
+      body_en: "Summer cotton cap",
       price: 180000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -137,8 +149,10 @@ function seedProducts(): Product[] {
     {
       id: 6,
       title: "ساعت مچی",
+      title_en: "Wrist watch",
       category: "3",
       body: "ساعت ساده با بند چرم",
+      body_en: "Simple watch with a leather strap",
       price: 1750000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -149,8 +163,10 @@ function seedProducts(): Product[] {
     {
       id: 7,
       title: "کوله‌پشتی",
+      title_en: "Backpack",
       category: "2",
       body: "کوله روزمره برای لپ‌تاپ",
+      body_en: "Everyday backpack for a laptop",
       price: 980000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -161,8 +177,10 @@ function seedProducts(): Product[] {
     {
       id: 8,
       title: "لیوان سرامیک",
+      title_en: "Ceramic mug set",
       category: "4",
       body: "ست دو تایی لیوان دست‌ساز",
+      body_en: "Handmade two-mug set",
       price: 240000,
       user_id: 1,
       created_at: new Date().toISOString(),
@@ -382,6 +400,7 @@ function ensureSeed() {
   writeJson(ORDERS_KEY, seedOrders());
   writeJson(REVIEWS_KEY, seedReviews());
   writeJson(STOCK_ALERTS_KEY, []);
+  writeJson(NOTIFICATIONS_KEY, []);
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
@@ -458,6 +477,34 @@ export function recordLowStockAlerts(products: Product[]) {
   }
 
   if (changed) saveStockAlerts(next);
+}
+
+export function getOrderNotifications(): OrderNotification[] {
+  ensureSeed();
+  return readJson<OrderNotification[]>(NOTIFICATIONS_KEY, []);
+}
+
+export function saveOrderNotifications(items: OrderNotification[]) {
+  writeJson(NOTIFICATIONS_KEY, items);
+}
+
+export function pushOrderNotification(order: {
+  id: number;
+  customerName: string;
+  total: number;
+}) {
+  const items = getOrderNotifications();
+  const next: OrderNotification = {
+    id: nextId(items),
+    orderId: order.id,
+    customerName: order.customerName,
+    total: order.total,
+    message: `سفارش جدید #${order.id} از ${order.customerName}`,
+    created_at: new Date().toISOString(),
+    read: false,
+  };
+  saveOrderNotifications([next, ...items].slice(0, 50));
+  return next;
 }
 
 export function getSession(): Session | null {
