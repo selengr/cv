@@ -21,6 +21,12 @@ import {
   toggleWishlist,
   wishlistCount,
 } from "@/helpers/wishlist";
+import {
+  localizedBody,
+  localizedTitle,
+  readLocale,
+  subscribeLocale,
+} from "@/helpers/locale";
 import { categoryLabel, formatToman } from "@/helpers/catalog";
 import { formatStars } from "@/helpers/reviews";
 import { formatDay } from "@/helpers/orders";
@@ -36,6 +42,7 @@ export default function ShopProductPage({
   const router = useRouter();
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
+  const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "fa" as const);
   const { data: productData, error, isLoading } = useSWR(
     { url: `/shop/products/${id}`, id },
     ({ id: productIdValue }) => GetShopProduct(productIdValue),
@@ -118,8 +125,12 @@ export default function ShopProductPage({
         <ProductThumb item={product} className="h-72 sm:h-80" />
         <div>
           <p className="text-xs text-[#1f4a45]">{categoryLabel(product.category)}</p>
-          <h1 className="font-display mt-2 text-3xl font-semibold">{product.title}</h1>
-          <p className="mt-2 text-sm text-[#5c564d]">{product.body}</p>
+          <h1 className="font-display mt-2 text-3xl font-semibold">
+            {localizedTitle(product, locale)}
+          </h1>
+          <p className="mt-2 text-sm text-[#5c564d]">
+            {localizedBody(product, locale)}
+          </p>
           <p className="mt-4 font-display text-2xl font-semibold">
             {formatToman(product.price)}
           </p>
