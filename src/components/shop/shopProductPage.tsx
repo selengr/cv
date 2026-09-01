@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -13,7 +13,14 @@ import {
   GetProductReviews,
   GetShopProduct,
 } from "@/services/review";
-import { addToCart } from "@/helpers/cart";
+import { addToCart, cartCount, readCart, subscribeCart } from "@/helpers/cart";
+import {
+  isInWishlist,
+  readWishlist,
+  subscribeWishlist,
+  toggleWishlist,
+  wishlistCount,
+} from "@/helpers/wishlist";
 import { categoryLabel, formatToman } from "@/helpers/catalog";
 import { formatStars } from "@/helpers/reviews";
 import { formatDay } from "@/helpers/orders";
@@ -27,6 +34,8 @@ export default function ShopProductPage({
   const { productId } = use(params);
   const id = Number(productId);
   const router = useRouter();
+  const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
+  const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
   const { data: productData, error, isLoading } = useSWR(
     { url: `/shop/products/${id}`, id },
     ({ id: productIdValue }) => GetShopProduct(productIdValue),
@@ -75,7 +84,7 @@ export default function ShopProductPage({
 
   if (isLoading) {
     return (
-      <ShopShell>
+      <ShopShell cartCount={cartCount(lines)} wishCount={wishlistCount(wish)}>
         <LoadingBox />
       </ShopShell>
     );
@@ -83,7 +92,7 @@ export default function ShopProductPage({
 
   if (error || !product) {
     return (
-      <ShopShell>
+      <ShopShell cartCount={cartCount(lines)} wishCount={wishlistCount(wish)}>
         <p className="text-sm text-[#6b6459]">این محصول پیدا نشد.</p>
         <button
           type="button"
@@ -97,9 +106,10 @@ export default function ShopProductPage({
   }
 
   const stock = product.stock ?? 0;
+  const wished = isInWishlist(product.id, wish);
 
   return (
-    <ShopShell>
+    <ShopShell cartCount={cartCount(lines)} wishCount={wishlistCount(wish)}>
       <Link href="/shop" className="text-sm text-[#1f4a45]">
         بازگشت به فروشگاه
       </Link>
@@ -119,17 +129,37 @@ export default function ShopProductPage({
               ? `${formatStars(ratingAvg)} ${ratingAvg.toLocaleString("fa-IR")} (${reviewCount.toLocaleString("fa-IR")} نظر)`
               : "هنوز نظری نیست"}
           </p>
-          <button
-            type="button"
-            disabled={stock < 1}
-            onClick={() => {
-              addToCart(product);
-              toast.success("به سبد اضافه شد");
-            }}
-            className="mt-5 rounded-full bg-[#1f4a45] px-5 py-2.5 text-sm text-white disabled:opacity-40"
-          >
-            {stock < 1 ? "ناموجود" : "افزودن به سبد"}
-          </button>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={stock < 1}
+              onClick={() => {
+                addToCart(product);
+                toast.success("به سبد اضافه شد");
+              }}
+              className="rounded-full bg-[#1f4a45] px-5 py-2.5 text-sm text-white disabled:opacity-40"
+            >
+              {stock < 1 ? "ناموجود" : "افزودن به سبد"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const next = toggleWishlist(product);
+                toast.success(
+                  isInWishlist(product.id, next)
+                    ? "به علاقه‌مندی‌ها اضافه شد"
+                    : "از علاقه‌مندی‌ها برداشته شد",
+                );
+              }}
+              className={`rounded-full px-4 py-2.5 text-sm ring-1 ${
+                wished
+                  ? "bg-[#1f4a45]/10 text-[#1f4a45] ring-[#1f4a45]/20"
+                  : "ring-[#14110e]/15"
+              }`}
+            >
+              {wished ? "♥ در علاقه‌مندی‌ها" : "♡ علاقه‌مندی"}
+            </button>
+          </div>
         </div>
       </div>
 
