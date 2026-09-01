@@ -221,6 +221,12 @@ export default function PanelHome() {
         >
           سفارش دستی
         </Link>
+        <Link
+          href="/panel/analytics"
+          className="rounded-full border border-[#14110e]/12 bg-white px-5 py-2.5 text-sm"
+        >
+          آمار فروش
+        </Link>
         {access.canAccess("add_new_product") && (
           <Link
             href="/admin/products/create"
