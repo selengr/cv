@@ -26,18 +26,22 @@ const FormikEditProductForm = withFormik<ProductFormProps, CreateProductInterfac
   {
     mapPropsToValues: ({ product }) => ({
       title: product.title,
+      title_en: product.title_en ?? "",
       category_id: product.category ?? "",
       price: product.price,
       description: product.body,
+      body_en: product.body_en ?? "",
       stock: product.stock ?? 0,
       emoji: product.emoji ?? "📦",
       image: product.image ?? "",
     }),
     validationSchema: yup.object({
       title: yup.string().required("عنوان الزامی است").min(4).max(255),
+      title_en: yup.string().max(255),
       category_id: yup.string().required("دسته‌بندی الزامی است"),
       price: yup.number().min(0),
       description: yup.string().required("توضیحات الزامی است").min(4).max(6000),
+      body_en: yup.string().max(6000),
       stock: yup.number().min(0).required("موجودی الزامی است"),
       emoji: yup.string().required(),
       image: yup.string(),
