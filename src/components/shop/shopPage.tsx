@@ -27,6 +27,12 @@ import {
   toggleWishlist,
   wishlistCount,
 } from "@/helpers/wishlist";
+import {
+  localizedBody,
+  localizedTitle,
+  readLocale,
+  subscribeLocale,
+} from "@/helpers/locale";
 import { productMatchesQuery } from "@/helpers/search";
 import { PAYMENT_METHODS, type PaymentMethod } from "@/helpers/payments";
 import { formatStars } from "@/helpers/reviews";
@@ -39,6 +45,7 @@ export default function ShopPage() {
   const { data, error, mutate } = useSWR("shop/products", GetShopProducts);
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
+  const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "fa" as const);
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
@@ -198,11 +205,11 @@ export default function ShopPage() {
                         href={`/shop/products/${product.id}`}
                         className="hover:text-[#1f4a45]"
                       >
-                        {product.title}
+                        {localizedTitle(product, locale)}
                       </Link>
                     </h2>
                     <p className="mt-1 line-clamp-2 text-sm text-[#6b6459]">
-                      {product.body}
+                      {localizedBody(product, locale)}
                     </p>
                     {(product.reviewCount ?? 0) > 0 && (
                       <p className="mt-2 text-xs text-amber-800">
