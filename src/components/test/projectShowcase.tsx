@@ -109,6 +109,7 @@ export default function ProjectShowcase() {
             {[
               { href: "/", title: "خانه", body: "لندینگ" },
               { href: "/shop", title: "فروشگاه", body: "ویترین عمومی، سبد، سفارش مهمان" },
+              { href: "/shop/wishlist", title: "علاقه‌مندی", body: "لیست دلخواه روی همین دستگاه" },
               { href: "/shop/products/1", title: "جزئیات محصول", body: "نظر و امتیاز خریداران" },
               { href: "/shop/track", title: "پیگیری سفارش", body: "وضعیت با شماره سفارش و موبایل" },
               { href: "/shop/pay/1", title: "پرداخت", body: "خلاصه سفارش و ورود به درگاه" },
@@ -116,6 +117,7 @@ export default function ProjectShowcase() {
               { href: "/auth/login", title: "ورود", body: "شماره و کد تایید" },
               { href: "/auth/login/step-two", title: "تایید کد", body: "قدم دوم ورود" },
               { href: "/panel", title: "پنل کاربر", body: "خلاصه فروشگاه و نمونه‌ها" },
+              { href: "/panel/analytics", title: "آمار فروش", body: "نمودار هفت‌روزه و پرفروش‌ها" },
               { href: "/panel/products", title: "کاتالوگ پنل", body: "محصولات نمونه با فیلتر" },
               { href: "/panel/orders", title: "سفارش‌ها", body: "لیست، وضعیت، سفارش دستی" },
               { href: "/panel/orders/1048/invoice", title: "فاکتور", body: "چاپ فاکتور سفارش نمونه" },
