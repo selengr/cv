@@ -19,14 +19,17 @@ import {
   getReviews,
   getSession,
   getStockAlerts,
+  getOrderNotifications,
   getUsers,
   nextId,
   publicUser,
+  pushOrderNotification,
   randomOtp,
   randomToken,
   recordLowStockAlerts,
   saveOtpHint,
   saveOrders,
+  saveOrderNotifications,
   savePendingOtp,
   saveProducts,
   saveReviews,
@@ -276,8 +279,10 @@ export async function handleLocalRequest(
     const product = {
       id: nextId(products),
       title: String(body.title ?? ""),
+      title_en: String(body.title_en ?? "").trim() || undefined,
       category: String(body.category ?? body.category_id ?? ""),
       body: String(body.body ?? body.description ?? ""),
+      body_en: String(body.body_en ?? "").trim() || undefined,
       price: Number(body.price ?? 0),
       user_id: session.user.id,
       created_at: new Date().toISOString(),
@@ -300,8 +305,16 @@ export async function handleLocalRequest(
     products[index] = {
       ...products[index],
       title: String(body.title ?? products[index].title),
+      title_en:
+        body.title_en !== undefined
+          ? String(body.title_en).trim() || undefined
+          : products[index].title_en,
       category: String(body.category ?? body.category_id ?? products[index].category),
       body: String(body.body ?? body.description ?? products[index].body),
+      body_en:
+        body.body_en !== undefined
+          ? String(body.body_en).trim() || undefined
+          : products[index].body_en,
       price: Number(body.price ?? products[index].price),
       stock: Number(body.stock ?? products[index].stock ?? 0),
       emoji: String(body.emoji ?? products[index].emoji ?? "📦"),
@@ -480,6 +493,17 @@ export async function handleLocalRequest(
       paymentMethod: paymentMethod as "online" | "cod",
     };
     saveOrders([order, ...orders]);
+    pushOrderNotification(order);
+    void fetch("/api/notify/order", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        orderId: order.id,
+        customerName: order.customerName,
+        total: order.total,
+        phone: order.customerPhone,
+      }),
+    }).catch(() => undefined);
     return ok(config, { order }, 201);
   }
 
@@ -719,6 +743,36 @@ export async function handleLocalRequest(
     const alerts = getStockAlerts().map((item) => ({ ...item, read: true }));
     saveStockAlerts(alerts);
     return ok(config, { alerts });
+  }
+
+  if (method === "GET" && path === "/notifications") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { notifications: getOrderNotifications() });
+  }
+
+  const notificationReadMatch = path.match(/^\/notifications\/(\d+)\/read$/);
+  if (method === "POST" && notificationReadMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(notificationReadMatch[1]);
+    const items = getOrderNotifications();
+    const index = items.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    items[index] = { ...items[index], read: true };
+    saveOrderNotifications(items);
+    return ok(config, { notification: items[index] });
+  }
+
+  if (method === "POST" && path === "/notifications/read-all") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const items = getOrderNotifications().map((item) => ({
+      ...item,
+      read: true,
+    }));
+    saveOrderNotifications(items);
+    return ok(config, { notifications: items });
   }
 
   if (method === "POST" && path === "/auth/logout") {
