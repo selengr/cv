@@ -6,9 +6,11 @@ import Logo from "@/components/landing/logo";
 export default function ShopShell({
   children,
   cartCount = 0,
+  wishCount = 0,
 }: {
   children: React.ReactNode;
   cartCount?: number;
+  wishCount?: number;
 }) {
   return (
     <div className="min-h-screen bg-[#f4efe6] text-[#14110e]">
@@ -21,6 +23,14 @@ export default function ShopShell({
               {cartCount > 0 && (
                 <span className="mr-1.5 rounded-full bg-white/20 px-1.5">
                   {cartCount.toLocaleString("fa-IR")}
+                </span>
+              )}
+            </Link>
+            <Link href="/shop/wishlist" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+              علاقه‌مندی
+              {wishCount > 0 && (
+                <span className="mr-1.5 text-[#1f4a45]">
+                  {wishCount.toLocaleString("fa-IR")}
                 </span>
               )}
             </Link>
