@@ -21,7 +21,10 @@ export default function InnerProductForm(props: ProductFormProps) {
     <Form>
       <div className="grid grid-cols-1 gap-y-6 p-6 sm:grid-cols-4 sm:gap-x-8">
         <div className="sm:col-span-2">
-          <Input name="title" type="text" label="نام محصول" />
+          <Input name="title" type="text" label="نام محصول (فارسی)" />
+        </div>
+        <div className="sm:col-span-2">
+          <Input name="title_en" type="text" label="Title (English)" />
         </div>
         <div className="sm:col-span-2">
           <SelectBox
@@ -55,8 +58,15 @@ export default function InnerProductForm(props: ProductFormProps) {
         <div className="sm:col-span-4">
           <Textarea
             name="description"
-            label="درباره محصول"
+            label="درباره محصول (فارسی)"
             onChange={(e) => props.setFieldValue("description", e.target.value)}
+          />
+        </div>
+        <div className="sm:col-span-4">
+          <Textarea
+            name="body_en"
+            label="About (English)"
+            onChange={(e) => props.setFieldValue("body_en", e.target.value)}
           />
         </div>
       </div>
