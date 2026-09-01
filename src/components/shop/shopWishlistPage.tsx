@@ -9,7 +9,7 @@ import ProductThumb from "@/components/shared/productThumb";
 import EmptyList from "@/components/shared/emptyList";
 import LoadingBox from "@/components/shared/loadingBox";
 import { GetShopProducts } from "@/services/shop";
-import { addToCart } from "@/helpers/cart";
+import { addToCart, cartCount, readCart, subscribeCart } from "@/helpers/cart";
 import { formatToman } from "@/helpers/catalog";
 import {
   readWishlist,
@@ -20,6 +20,7 @@ import {
 
 export default function ShopWishlistPage() {
   const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
+  const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const { data, error } = useSWR("shop/products", GetShopProducts);
   const loading = !data && !error;
 
@@ -36,7 +37,7 @@ export default function ShopWishlistPage() {
   }, [data, wish]);
 
   return (
-    <ShopShell cartCount={0} wishCount={wishlistCount(wish)}>
+    <ShopShell cartCount={cartCount(lines)} wishCount={wishlistCount(wish)}>
       <h1 className="font-display text-3xl font-semibold">علاقه‌مندی‌ها</h1>
       <p className="mt-2 text-sm text-[#5c564d]">
         محصولاتی که برای بعد علامت زدی. فقط روی این دستگاه ذخیره می‌شوند.
