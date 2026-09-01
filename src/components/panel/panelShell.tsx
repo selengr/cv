@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import useSWR from "swr";
 import Logo from "@/components/landing/logo";
 import useAuth from "@/hooks/useAuth";
 import useLogout from "@/hooks/useLogout";
 import User from "@/models/user";
+import { GetNotifications } from "@/services/notification";
 
 const links = [
   { href: "/panel", label: "خلاصه", exact: true },
   { href: "/panel/analytics", label: "آمار", exact: false },
   { href: "/panel/orders", label: "سفارش‌ها", exact: false },
   { href: "/panel/products", label: "محصولات", exact: false },
+  { href: "/panel/notifications", label: "اعلان‌ها", exact: false },
 ];
 
 export default function PanelShell({ children }: { children: React.ReactNode }) {
@@ -19,6 +22,10 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
   const { user } = useAuth();
   const logout = useLogout();
   const access = new User(user);
+  const { data: notifications } = useSWR("notifications", GetNotifications, {
+    refreshInterval: 8000,
+  });
+  const unread = (notifications ?? []).filter((item) => !item.read).length;
 
   return (
     <div className="min-h-screen bg-[#f4efe6] text-[#14110e]">
@@ -30,6 +37,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
               const active = link.exact
                 ? pathname === link.href
                 : pathname.startsWith(link.href);
+              const isNotify = link.href === "/panel/notifications";
               return (
                 <Link
                   key={link.href}
@@ -39,6 +47,15 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
                   }`}
                 >
                   {link.label}
+                  {isNotify && unread > 0 && (
+                    <span
+                      className={`mr-1.5 rounded-full px-1.5 text-xs ${
+                        active ? "bg-white/20" : "bg-[#1f4a45]/15 text-[#1f4a45]"
+                      }`}
+                    >
+                      {unread.toLocaleString("fa-IR")}
+                    </span>
+                  )}
                 </Link>
               );
             })}
