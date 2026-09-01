@@ -118,6 +118,7 @@ export default function ProjectShowcase() {
               { href: "/auth/login/step-two", title: "تایید کد", body: "قدم دوم ورود" },
               { href: "/panel", title: "پنل کاربر", body: "خلاصه فروشگاه و نمونه‌ها" },
               { href: "/panel/analytics", title: "آمار فروش", body: "نمودار هفت‌روزه و پرفروش‌ها" },
+              { href: "/panel/notifications", title: "اعلان‌ها", body: "سفارش‌های جدید برای فروشنده" },
               { href: "/panel/products", title: "کاتالوگ پنل", body: "محصولات نمونه با فیلتر" },
               { href: "/panel/orders", title: "سفارش‌ها", body: "لیست، وضعیت، سفارش دستی" },
               { href: "/panel/orders/1048/invoice", title: "فاکتور", body: "چاپ فاکتور سفارش نمونه" },
