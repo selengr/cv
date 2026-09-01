@@ -24,7 +24,9 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - stock alerts for sellers when inventory hits 5 or below
 - wishlist / favorites on the public shop
 - seller analytics charts on `/panel/analytics`
-- UI is RTL / Persian
+- order notifications for sellers (`/panel/notifications`, optional webhook)
+- shop catalog FA/EN toggle
+- UI is RTL / Persian (EN flips shop direction)
 
 By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen. Public shop is at `/shop`.
 
@@ -68,5 +70,5 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- email / push notifications for new orders
-- multi-language product catalog
+- discount codes / coupons
+- customer accounts on the public shop
