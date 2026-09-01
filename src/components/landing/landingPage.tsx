@@ -21,20 +21,20 @@ const features = [
   },
   {
     icon: CubeIcon,
-    title: "کاتالوگ محصول",
-    body: "عکس، دسته، موجودی. اضافه و ویرایش از همان پنل.",
+    title: "فروشگاه عمومی",
+    body: "ویترین، سبد، علاقه‌مندی، نظر مشتری و پیگیری سفارش.",
   },
   {
     icon: ClipboardDocumentListIcon,
-    title: "سفارش‌ها",
-    body: "از تماس و اینستاگرام می‌آید، وضعیت‌اش را همین‌جا عوض می‌کنی.",
+    title: "پنل فروشنده",
+    body: "سفارش، فاکتور، هشدار موجودی و آمار هفت‌روزه فروش.",
   },
 ];
 
 const steps = [
   { n: "۱", title: "حساب", body: "اسم و شماره. یک دقیقه." },
-  { n: "۲", title: "کد", body: "پیامک می‌آید، شش رقم می‌زنی." },
-  { n: "۳", title: "پنل", body: "محصول و سفارش همان‌جا جمع می‌شوند." },
+  { n: "۲", title: "کد", body: "پیامک یا کد تست روی صفحه." },
+  { n: "۳", title: "کار", body: "فروشگاه را باز کن یا برو داخل پنل." },
 ];
 
 function TiltFrame({ children }: { children: React.ReactNode }) {
@@ -95,12 +95,15 @@ export default function LandingPage() {
                 </span>
                 پنل فارسی فروشگاه
               </span>
-              <h1 className="font-display mt-5 text-[2.15rem] font-bold tracking-tight sm:text-5xl lg:text-[3.35rem]">
+              <p className="font-display mt-5 text-5xl font-bold tracking-tight text-[#1f4a45] sm:text-6xl lg:text-7xl">
+                Shopy
+              </p>
+              <h1 className="font-display mt-3 text-[1.85rem] font-semibold tracking-tight text-[#14110e] sm:text-4xl lg:text-[2.75rem]">
                 فروشگاه را جمع‌وجور، جلو چشم نگه دار
               </h1>
               <p className="mt-5 max-w-xl text-base text-[#5c564d] sm:text-lg">
-                ویترین نیست. جایی است که محصول را می‌گذاری، سفارش را می‌گیری
-                و با موبایل وارد می‌شوی.
+                ویترین عمومی، سفارش، پرداخت آزمایشی و آمار فروشنده — همه در یک
+                اپ فارسی.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
@@ -114,6 +117,12 @@ export default function LandingPage() {
                   className="rounded-full border border-[#14110e]/12 bg-white/80 px-6 py-3 text-sm transition hover:bg-white"
                 >
                   برو به فروشگاه
+                </Link>
+                <Link
+                  href="/panel/analytics"
+                  className="rounded-full px-4 py-3 text-sm text-[#1f4a45] transition hover:bg-white/80"
+                >
+                  آمار فروشنده
                 </Link>
               </div>
             </motion.div>
@@ -205,9 +214,11 @@ export default function LandingPage() {
           >
             <div>
               <h2 className="font-display text-2xl font-semibold sm:text-3xl">
-                اگر فروشگاه کوچکی داری، از همین‌جا شروع کن
+                با Shopy از ویترین تا آمار، یک‌جا
               </h2>
-              <p className="mt-2 text-sm text-[#5c564d]">ثبت‌نام رایگان است. بعدش می‌روی داخل پنل.</p>
+              <p className="mt-2 text-sm text-[#5c564d]">
+                ثبت‌نام رایگان است. بعدش فروشگاه یا پنل را باز کن.
+              </p>
             </div>
             <Link
               href="/auth/register"
