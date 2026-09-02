@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import type { KeyedMutator } from "swr";
 import InnerProductForm from "@/components/admin/products/innerProductForm";
-import { CreateProductInterface } from "@/contracts/admin/products";
+import { CreateProductInterface, variantsFromProduct } from "@/contracts/admin/products";
 import ValidationError, {
   applyFieldErrors,
 } from "@/exceptions/validationError";
@@ -34,6 +34,7 @@ const FormikEditProductForm = withFormik<ProductFormProps, CreateProductInterfac
       stock: product.stock ?? 0,
       emoji: product.emoji ?? "📦",
       image: product.image ?? "",
+      variants: variantsFromProduct(product.variants),
     }),
     validationSchema: yup.object({
       title: yup.string().required("عنوان الزامی است").min(4).max(255),

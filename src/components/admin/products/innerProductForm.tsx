@@ -8,6 +8,7 @@ import SelectBox from "@/components/shared/form/selectbox";
 import Textarea from "@/components/shared/form/textarea";
 import { PRODUCT_EMOJIS, categorySelectOptions } from "@/helpers/catalog";
 import ProductImageField from "@/components/admin/products/productImageField";
+import ProductVariantsField from "@/components/admin/products/productVariantsField";
 import Product from "@/models/product";
 
 type ProductFormProps = FormikProps<CreateProductInterface> & {
@@ -16,6 +17,7 @@ type ProductFormProps = FormikProps<CreateProductInterface> & {
 
 export default function InnerProductForm(props: ProductFormProps) {
   const router = useRouter();
+  const hasVariantRows = (props.values.variants?.length ?? 0) > 0;
 
   return (
     <Form>
@@ -37,7 +39,11 @@ export default function InnerProductForm(props: ProductFormProps) {
           <Input name="price" type="number" label="قیمت (تومان)" />
         </div>
         <div className="sm:col-span-1">
-          <Input name="stock" type="number" label="موجودی" />
+          <Input
+            name="stock"
+            type="number"
+            label={hasVariantRows ? "موجودی (جمع گزینه‌ها)" : "موجودی"}
+          />
         </div>
         <div className="sm:col-span-1">
           <SelectBox
@@ -55,6 +61,16 @@ export default function InnerProductForm(props: ProductFormProps) {
             onChange={(value) => props.setFieldValue("image", value)}
           />
         </div>
+        <ProductVariantsField
+          value={props.values.variants ?? []}
+          onChange={(next) => {
+            props.setFieldValue("variants", next);
+            if (next.length > 0) {
+              const sum = next.reduce((total, row) => total + (Number(row.stock) || 0), 0);
+              props.setFieldValue("stock", sum);
+            }
+          }}
+        />
         <div className="sm:col-span-4">
           <Textarea
             name="description"

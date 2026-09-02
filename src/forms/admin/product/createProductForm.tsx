@@ -29,6 +29,7 @@ const FormikCreateProductForm = withFormik<
     stock: 1,
     emoji: "📦",
     image: "",
+    variants: [],
   }),
   validationSchema: yup.object({
     title: yup.string().required("عنوان الزامی است").min(4).max(255),
