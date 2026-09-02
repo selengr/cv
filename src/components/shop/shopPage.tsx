@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -10,6 +10,8 @@ import ProductThumb from "@/components/shared/productThumb";
 import LoadingBox from "@/components/shared/loadingBox";
 import EmptyList from "@/components/shared/emptyList";
 import { GetShopProducts, CreateShopOrder } from "@/services/shop";
+import { ValidateShopCoupon } from "@/services/coupon";
+import { GetShopCustomerMe } from "@/services/shopAuth";
 import { CATEGORIES, categoryLabel, formatToman } from "@/helpers/catalog";
 import {
   addToCart,
@@ -43,6 +45,9 @@ import type Product from "@/models/product";
 export default function ShopPage() {
   const router = useRouter();
   const { data, error, mutate } = useSWR("shop/products", GetShopProducts);
+  const { data: customer } = useSWR("shop/customer/me", GetShopCustomerMe, {
+    shouldRetryOnError: false,
+  });
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
   const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "fa" as const);
@@ -50,11 +55,25 @@ export default function ShopPage() {
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    total: number;
+  } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [saving, setSaving] = useState(false);
   const [placedId, setPlacedId] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (!customer) return;
+    setName((current) => current || customer.name);
+    setPhone((current) => current || customer.phone);
+  }, [customer]);
+
   const loading = !data && !error;
+  const subtotal = cartTotal(lines);
+  const payable = appliedCoupon?.total ?? subtotal;
   const filtered = useMemo(() => {
     const products = data ?? [];
     return products.filter((item) => {
@@ -71,7 +90,37 @@ export default function ShopPage() {
       toast.error("موجودی این محصول تمام است");
       return;
     }
+    setAppliedCoupon(null);
     toast.success(`${product.title} به سبد اضافه شد`);
+  };
+
+  const applyCode = async () => {
+    if (!couponInput.trim()) {
+      toast.error("کد تخفیف را بنویس");
+      return;
+    }
+    if (lines.length === 0) {
+      toast.error("سبد خالی است");
+      return;
+    }
+    try {
+      const result = await ValidateShopCoupon(couponInput, subtotal);
+      setAppliedCoupon({
+        code: result.code,
+        discount: result.discount,
+        total: result.total,
+      });
+      toast.success("کد تخفیف اعمال شد");
+    } catch (err) {
+      setAppliedCoupon(null);
+      if (err instanceof ValidationError) {
+        const first = Object.values(err.messages)[0];
+        const message = Array.isArray(first) ? first[0] : first;
+        toast.error(String(message ?? "کد معتبر نیست"));
+        return;
+      }
+      toast.error("کد معتبر نیست");
+    }
   };
 
   const checkout = async (event: React.FormEvent) => {
@@ -96,12 +145,15 @@ export default function ShopPage() {
         customerName: name.trim(),
         customerPhone: normalized,
         paymentMethod,
+        couponCode: appliedCoupon?.code,
         items: lines.map((line) => ({
           productId: line.productId,
           qty: line.qty,
         })),
       });
       clearCart();
+      setAppliedCoupon(null);
+      setCouponInput("");
       setPlacedId(order.id);
       await mutate();
       if (paymentMethod === "online") {
@@ -295,9 +347,20 @@ export default function ShopPage() {
             </ul>
           )}
 
-          <p className="mt-4 font-medium">{formatToman(cartTotal(lines))}</p>
+          <p className="mt-4 font-medium">{formatToman(subtotal)}</p>
+          {appliedCoupon && (
+            <p className="mt-1 text-sm text-emerald-800">
+              تخفیف {appliedCoupon.code}: −{formatToman(appliedCoupon.discount)} →{" "}
+              {formatToman(payable)}
+            </p>
+          )}
 
           <form onSubmit={checkout} className="mt-4 space-y-3">
+            {customer && (
+              <p className="rounded-2xl bg-[#1f4a45]/5 px-3 py-2 text-xs text-[#1f4a45]">
+                وارد شده‌ای به عنوان {customer.name}
+              </p>
+            )}
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -312,6 +375,26 @@ export default function ShopPage() {
               dir="ltr"
               className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
             />
+            <div className="flex gap-2">
+              <input
+                value={couponInput}
+                onChange={(event) => {
+                  setCouponInput(event.target.value);
+                  setAppliedCoupon(null);
+                }}
+                placeholder="کد تخفیف"
+                dir="ltr"
+                className="min-w-0 flex-1 rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
+              />
+              <button
+                type="button"
+                onClick={applyCode}
+                className="rounded-full px-3 py-2 text-sm ring-1 ring-[#14110e]/15"
+              >
+                اعمال
+              </button>
+            </div>
+            <p className="text-[11px] text-[#6b6459]">نمونه: WELCOME10 یا SAVE50K</p>
             <div className="space-y-2">
               {PAYMENT_METHODS.map((method) => (
                 <label
