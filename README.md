@@ -26,6 +26,8 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - seller analytics charts on `/panel/analytics`
 - order notifications for sellers (`/panel/notifications`, optional webhook)
 - shop catalog FA/EN toggle
+- discount codes / coupons (`/panel/coupons`, checkout codes like WELCOME10)
+- customer shop accounts (`/shop/account`) with order history
 - UI is RTL / Persian (EN flips shop direction)
 
 By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen. Public shop is at `/shop`.
@@ -70,5 +72,5 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- discount codes / coupons
-- customer accounts on the public shop
+- shipping methods and address book
+- product variants (size / color)
