@@ -29,4 +29,8 @@ export default interface Order {
   authority?: string;
   /** Payment confirmation code after verify */
   refId?: string;
+  couponCode?: string;
+  discount?: number;
+  subtotal?: number;
+  customerId?: number;
 }
