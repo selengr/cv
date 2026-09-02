@@ -47,6 +47,9 @@ export default function ShopShell({
             <Link href="/shop/track" className="rounded-full px-3 py-1.5 hover:bg-white/80">
               {fa ? "پیگیری" : "Track"}
             </Link>
+            <Link href="/shop/account" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+              {fa ? "حساب" : "Account"}
+            </Link>
             <Link href="/panel" className="rounded-full px-3 py-1.5 hover:bg-white/80">
               {fa ? "پنل" : "Panel"}
             </Link>
