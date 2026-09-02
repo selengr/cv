@@ -1,0 +1,258 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import useSWR from "swr";
+import { toast } from "react-toastify";
+import ShopShell from "@/components/shop/shopShell";
+import LoadingBox from "@/components/shared/loadingBox";
+import EmptyList from "@/components/shared/emptyList";
+import OrderStatusBadge from "@/components/orders/orderStatusBadge";
+import {
+  GetMyShopOrders,
+  GetShopCustomerMe,
+  LoginShopCustomer,
+  LogoutShopCustomer,
+  RegisterShopCustomer,
+  VerifyShopCustomer,
+} from "@/services/shopAuth";
+import { formatToman } from "@/helpers/catalog";
+import { formatDay } from "@/helpers/orders";
+import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
+import { readCustomerOtpHint } from "@/helpers/localDb";
+import ValidationError from "@/exceptions/validationError";
+
+type Mode = "login" | "register" | "verify";
+
+export default function ShopAccountPage() {
+  const { data: customer, mutate, error, isLoading } = useSWR(
+    "shop/customer/me",
+    GetShopCustomerMe,
+    { shouldRetryOnError: false },
+  );
+  const { data: orders, mutate: mutateOrders } = useSWR(
+    customer ? "shop/account/orders" : null,
+    GetMyShopOrders,
+  );
+
+  const [mode, setMode] = useState<Mode>("login");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [token, setToken] = useState("");
+  const [code, setCode] = useState("");
+  const [hint, setHint] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const startAuth = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const normalized = normalizeIranianPhone(phone);
+    if (!iranianPhoneRegExp.test(normalized)) {
+      toast.error("شماره موبایل درست نیست");
+      return;
+    }
+    if (mode === "register" && name.trim().length < 2) {
+      toast.error("نام را بنویس");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res =
+        mode === "register"
+          ? await RegisterShopCustomer({
+              name: name.trim(),
+              phone: normalized,
+            })
+          : await LoginShopCustomer(normalized);
+      setToken(res.token);
+      setHint(res.debug_code ?? readCustomerOtpHint());
+      if (res.debug_code) toast.info(`کد تست: ${res.debug_code}`);
+      else if (res.sms_sent) toast.success("کد پیامک شد");
+      setMode("verify");
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        const first = Object.values(err.messages)[0];
+        const message = Array.isArray(first) ? first[0] : first;
+        toast.error(String(message ?? "انجام نشد"));
+        return;
+      }
+      toast.error("انجام نشد");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const verify = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await VerifyShopCustomer({ token, code: code.trim() });
+      await mutate();
+      await mutateOrders();
+      toast.success("وارد شدی");
+      setMode("login");
+      setCode("");
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        const first = Object.values(err.messages)[0];
+        const message = Array.isArray(first) ? first[0] : first;
+        toast.error(String(message ?? "کد درست نیست"));
+        return;
+      }
+      toast.error("کد درست نیست");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const logout = async () => {
+    await LogoutShopCustomer();
+    await mutate(undefined, { revalidate: false });
+    toast.info("خارج شدی");
+  };
+
+  return (
+    <ShopShell>
+      <h1 className="font-display text-3xl font-semibold">حساب مشتری</h1>
+      <p className="mt-2 text-sm text-[#5c564d]">
+        جدا از پنل فروشنده است. سفارش‌هایت اینجا می‌ماند.
+      </p>
+
+      {isLoading && !customer && !error ? (
+        <div className="mt-8">
+          <LoadingBox />
+        </div>
+      ) : customer ? (
+        <div className="mt-8 space-y-6">
+          <div className="rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm">
+            <p className="font-medium">{customer.name}</p>
+            <p className="mt-1 text-sm text-[#5c564d]" dir="ltr">
+              {customer.phone}
+            </p>
+            <button
+              type="button"
+              onClick={logout}
+              className="mt-4 rounded-full px-4 py-2 text-sm ring-1 ring-[#14110e]/15"
+            >
+              خروج
+            </button>
+          </div>
+
+          <div>
+            <h2 className="font-display text-xl font-semibold">سفارش‌های من</h2>
+            {!orders || orders.length === 0 ? (
+              <div className="mt-4">
+                <EmptyList
+                  title="هنوز سفارشی نیست"
+                  description="از فروشگاه خرید کن"
+                />
+                <Link
+                  href="/shop"
+                  className="mt-3 inline-flex rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
+                >
+                  فروشگاه
+                </Link>
+              </div>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {orders.map((order) => (
+                  <li
+                    key={order.id}
+                    className="flex items-center justify-between gap-3 rounded-3xl border border-[#14110e]/8 bg-white/85 px-4 py-3 shadow-sm"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        #{order.id.toLocaleString("fa-IR")} · {formatToman(order.total)}
+                      </p>
+                      <p className="text-xs text-[#6b6459]">
+                        {formatDay(order.created_at)}
+                        {order.couponCode ? ` · ${order.couponCode}` : ""}
+                      </p>
+                    </div>
+                    <OrderStatusBadge status={order.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      ) : mode === "verify" ? (
+        <form
+          onSubmit={verify}
+          className="mt-8 max-w-md space-y-4 rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm"
+        >
+          <p className="text-sm text-[#5c564d]">کد تایید را وارد کن</p>
+          {hint && (
+            <p className="rounded-full bg-[#1f4a45]/10 px-3 py-2 text-center text-sm text-[#1f4a45]">
+              کد تست: {hint}
+            </p>
+          )}
+          <input
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            inputMode="numeric"
+            dir="ltr"
+            className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-center tracking-[0.3em]"
+          />
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full rounded-full bg-[#1f4a45] px-4 py-2.5 text-sm text-white disabled:opacity-50"
+          >
+            {saving ? "..." : "تایید و ورود"}
+          </button>
+        </form>
+      ) : (
+        <form
+          onSubmit={startAuth}
+          className="mt-8 max-w-md space-y-4 rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm"
+        >
+          <div className="flex gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => setMode("login")}
+              className={`rounded-full px-3 py-1.5 ${
+                mode === "login" ? "bg-[#1f4a45] text-white" : "ring-1 ring-[#14110e]/15"
+              }`}
+            >
+              ورود
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("register")}
+              className={`rounded-full px-3 py-1.5 ${
+                mode === "register"
+                  ? "bg-[#1f4a45] text-white"
+                  : "ring-1 ring-[#14110e]/15"
+              }`}
+            >
+              ثبت‌نام
+            </button>
+          </div>
+          {mode === "register" && (
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="نام"
+              className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
+            />
+          )}
+          <input
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="09xxxxxxxxx"
+            inputMode="tel"
+            dir="ltr"
+            className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full rounded-full bg-[#1f4a45] px-4 py-2.5 text-sm text-white disabled:opacity-50"
+          >
+            {saving ? "..." : "دریافت کد"}
+          </button>
+        </form>
+      )}
+    </ShopShell>
+  );
+}
