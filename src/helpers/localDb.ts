@@ -2,21 +2,28 @@ import type { UserType } from "@/models/user";
 import type Product from "@/models/product";
 import type Order from "@/models/order";
 import type Review from "@/models/review";
+import type Coupon from "@/models/coupon";
+import type Customer from "@/models/customer";
 import type { StockAlert } from "@/helpers/stockAlerts";
 import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "8";
+const DATA_VERSION = "9";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
 const REVIEWS_KEY = "shopy_reviews";
 const STOCK_ALERTS_KEY = "shopy_stock_alerts";
 const NOTIFICATIONS_KEY = "shopy_order_notifications";
+const COUPONS_KEY = "shopy_coupons";
+const CUSTOMERS_KEY = "shopy_customers";
+const CUSTOMER_SESSION_KEY = "shopy_customer_session";
+const CUSTOMER_OTP_KEY = "shopy_customer_otp";
 const SESSION_KEY = "shopy_session";
 const OTP_KEY = "shopy_otp";
 export const OTP_HINT_KEY = "shopy_otp_hint";
+export const CUSTOMER_OTP_HINT_KEY = "shopy_customer_otp_hint";
 
 export const ADMIN_PERMISSIONS = [
   "manage_products",
@@ -35,6 +42,11 @@ export type PendingOtp = {
   token: string;
   phone: string;
   code: string;
+};
+
+export type CustomerSession = {
+  token: string;
+  customer: Customer;
 };
 
 function canUseStorage() {
@@ -367,6 +379,34 @@ function seedReviews(): Review[] {
   ];
 }
 
+function seedCoupons(): Coupon[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: 1,
+      code: "WELCOME10",
+      type: "percent",
+      value: 10,
+      active: true,
+      minOrder: 200000,
+      maxUses: 100,
+      usedCount: 0,
+      created_at: now,
+    },
+    {
+      id: 2,
+      code: "SAVE50K",
+      type: "fixed",
+      value: 50000,
+      active: true,
+      minOrder: 500000,
+      maxUses: 50,
+      usedCount: 0,
+      created_at: now,
+    },
+  ];
+}
+
 export function getUsers(): StoredUser[] {
   ensureSeed();
   const users = readJson<StoredUser[]>(USERS_KEY, []);
@@ -401,6 +441,8 @@ function ensureSeed() {
   writeJson(REVIEWS_KEY, seedReviews());
   writeJson(STOCK_ALERTS_KEY, []);
   writeJson(NOTIFICATIONS_KEY, []);
+  writeJson(COUPONS_KEY, seedCoupons());
+  writeJson(CUSTOMERS_KEY, []);
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
@@ -505,6 +547,71 @@ export function pushOrderNotification(order: {
   };
   saveOrderNotifications([next, ...items].slice(0, 50));
   return next;
+}
+
+export function getCoupons(): Coupon[] {
+  ensureSeed();
+  const coupons = readJson<Coupon[] | null>(COUPONS_KEY, null);
+  if (!coupons) {
+    const seeded = seedCoupons();
+    writeJson(COUPONS_KEY, seeded);
+    return seeded;
+  }
+  return coupons;
+}
+
+export function saveCoupons(coupons: Coupon[]) {
+  writeJson(COUPONS_KEY, coupons);
+}
+
+export function getCustomers(): Customer[] {
+  ensureSeed();
+  return readJson<Customer[]>(CUSTOMERS_KEY, []);
+}
+
+export function saveCustomers(customers: Customer[]) {
+  writeJson(CUSTOMERS_KEY, customers);
+}
+
+export function getCustomerSession(): CustomerSession | null {
+  return readJson<CustomerSession | null>(CUSTOMER_SESSION_KEY, null);
+}
+
+export function saveCustomerSession(session: CustomerSession) {
+  writeJson(CUSTOMER_SESSION_KEY, session);
+}
+
+export function clearCustomerSession() {
+  if (!canUseStorage()) return;
+  localStorage.removeItem(CUSTOMER_SESSION_KEY);
+}
+
+export function getCustomerPendingOtp(): PendingOtp | null {
+  return readJson<PendingOtp | null>(CUSTOMER_OTP_KEY, null);
+}
+
+export function saveCustomerPendingOtp(otp: PendingOtp) {
+  writeJson(CUSTOMER_OTP_KEY, otp);
+}
+
+export function clearCustomerPendingOtp() {
+  if (!canUseStorage()) return;
+  localStorage.removeItem(CUSTOMER_OTP_KEY);
+}
+
+export function saveCustomerOtpHint(code: string) {
+  if (!canUseStorage()) return;
+  sessionStorage.setItem(CUSTOMER_OTP_HINT_KEY, code);
+}
+
+export function readCustomerOtpHint() {
+  if (!canUseStorage()) return null;
+  return sessionStorage.getItem(CUSTOMER_OTP_HINT_KEY);
+}
+
+export function clearCustomerOtpHint() {
+  if (!canUseStorage()) return;
+  sessionStorage.removeItem(CUSTOMER_OTP_HINT_KEY);
 }
 
 export function getSession(): Session | null {
