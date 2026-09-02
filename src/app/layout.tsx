@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" className={plex.variable}>
-      <body className={`${plex.className} antialiased`}>
+      <body className="font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

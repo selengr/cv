@@ -11,7 +11,7 @@ export default function Logo({ light = false }: { light?: boolean }) {
         ش
       </span>
       <span
-        className={`text-[1.15rem] font-semibold tracking-tight ${
+        className={`font-display text-[1.15rem] font-semibold tracking-tight ${
           light ? "text-white" : "text-[#14110e]"
         }`}
       >

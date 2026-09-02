@@ -29,11 +29,11 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
   const unread = (notifications ?? []).filter((item) => !item.read).length;
 
   return (
-    <div className="min-h-screen bg-[#f4efe6] text-[#14110e]">
+    <div className="min-h-screen bg-[#f4efe6] font-sans text-[#14110e]">
       <header className="print:hidden sticky top-0 z-20 border-b border-[#14110e]/8 bg-[#f4efe6]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <Logo />
-          <nav className="flex items-center gap-1 overflow-x-auto text-sm">
+          <nav className="flex items-center gap-1 overflow-x-auto text-[0.92rem]">
             {links.map((link) => {
               const active = link.exact
                 ? pathname === link.href
@@ -44,7 +44,9 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
                   key={link.href}
                   href={link.href}
                   className={`rounded-full px-3 py-1.5 whitespace-nowrap ${
-                    active ? "bg-[#1f4a45] text-white" : "hover:bg-white/80"
+                    active
+                      ? "bg-[#1f4a45] font-medium text-white"
+                      : "text-[#3f3a33] hover:bg-white/80"
                   }`}
                 >
                   {link.label}

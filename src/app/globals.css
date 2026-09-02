@@ -4,7 +4,7 @@
 @theme {
   --font-display: "Estedad Variable", var(--font-plex), ui-sans-serif, system-ui,
     sans-serif;
-  --font-sans: var(--font-plex), "Estedad Variable", ui-sans-serif, system-ui,
+  --font-sans: "Estedad Variable", var(--font-plex), ui-sans-serif, system-ui,
     sans-serif;
 }
 
@@ -18,7 +18,12 @@ body {
   margin: 0;
   background: #f4efe6;
   color: #14110e;
-  line-height: 1.8;
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01" on, "ss02" on;
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -26,7 +31,16 @@ h2,
 h3,
 .font-display {
   font-family: var(--font-display);
-  line-height: 1.35;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 a {
