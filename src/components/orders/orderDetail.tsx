@@ -122,6 +122,12 @@ export default function OrderDetail({
                 {order.refId ? ` · Ref ${order.refId}` : ""}
               </p>
             )}
+            {order.couponCode && (
+              <p className="mt-2 text-sm text-emerald-800">
+                تخفیف {order.couponCode}
+                {order.discount ? ` · −${order.discount.toLocaleString("fa-IR")} تومان` : ""}
+              </p>
+            )}
             {order.note && (
               <p className="mt-3 rounded-2xl bg-[#f4efe6] p-3 text-sm text-[#5c564d]">
                 {order.note}
