@@ -13,6 +13,7 @@ export async function CreateShopOrder(values: {
   customerPhone: string;
   note?: string;
   paymentMethod?: PaymentMethod;
+  couponCode?: string;
   items: Array<{ productId: number; qty: number }>;
 }) {
   const res = await callApi().post("/shop/orders", values);
