@@ -26,7 +26,7 @@ export async function CreateShopOrder(values: {
     postalCode?: string;
   };
   saveAddress?: boolean;
-  items: Array<{ productId: number; qty: number }>;
+  items: Array<{ productId: number; qty: number; variantId?: number }>;
 }) {
   const res = await callApi().post("/shop/orders", values);
   return res.data?.order as Order;

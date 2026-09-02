@@ -37,13 +37,13 @@ export function findVariant(
   if (selection.variantId != null) {
     return variants.find((item) => item.id === selection.variantId);
   }
+  const sizes = uniqueOptionValues(variants, "size");
+  const colors = uniqueOptionValues(variants, "color");
+  if (sizes.length > 0 && !selection.size) return undefined;
+  if (colors.length > 0 && !selection.color) return undefined;
   return variants.find((item) => {
-    const sizeOk = selection.size
-      ? item.size === selection.size
-      : !item.size || uniqueOptionValues(variants, "size").length === 0;
-    const colorOk = selection.color
-      ? item.color === selection.color
-      : !item.color || uniqueOptionValues(variants, "color").length === 0;
+    const sizeOk = sizes.length === 0 || item.size === selection.size;
+    const colorOk = colors.length === 0 || item.color === selection.color;
     return sizeOk && colorOk;
   });
 }

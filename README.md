@@ -1,39 +1,30 @@
 # Shopy
 
-Admin panel for a small shop. Login with an Iranian phone number, manage products, that's basically it.
+Small-shop admin panel. You log in with an Iranian phone number, manage products and orders, and there's a public storefront at `/shop` if you want customers to buy without calling you.
 
-The app name is Shopy. 
-
-```bash
-gh repo rename shopy
-```
-
-I started this around 2022 with Next.js 12. It sat for a while. I updated the stack (Next 16, React 19, Tailwind 4) and kept the same idea.
+I started this around 2022 on Next.js 12, left it alone for a long time, then dragged it onto Next 16 / React 19 / Tailwind 4. Same idea, less ancient tooling.
 
 ## What it does
 
-- sign up / login with phone + SMS code (local hint or Kavenegar)
-- seller panel
-- catalog: products, photos, categories, stock
-- orders: status flow, manual orders, printable invoice
-- admin can manage products and user roles
+- phone login (local OTP hint, or Kavenegar if you wire SMS)
+- seller panel for catalog, stock, orders, invoices
+- roles so an admin can manage products and people
 - public shop: browse, search, cart, guest checkout
-- payments: COD, in-app sandbox gateway, or Zarinpal when configured
-- order tracking for customers (`/shop/track`)
-- product reviews on `/shop/products/[id]`
-- stock alerts for sellers when inventory hits 5 or below
-- wishlist / favorites on the public shop
-- seller analytics charts on `/panel/analytics`
-- order notifications for sellers (`/panel/notifications`, optional webhook)
-- shop catalog FA/EN toggle
-- discount codes / coupons (`/panel/coupons`, checkout codes like WELCOME10)
-- customer shop accounts (`/shop/account`) with order history
-- shipping methods (`/panel/shipping`) and customer address book at checkout / account
-- UI is RTL / Persian (EN flips shop direction)
+- payments: cash on delivery, a fake in-app gateway, or Zarinpal sandbox / live
+- customers can track an order with the order id + phone (`/shop/track`)
+- reviews on product pages
+- stock alerts when something drops to 5 or below
+- wishlist on the shop (stays on that browser)
+- simple analytics (`/panel/analytics`) and order notifications (`/panel/notifications`)
+- FA/EN toggle on the shop catalog
+- discount codes (`/panel/coupons` — try `WELCOME10`)
+- customer accounts at `/shop/account` (separate from seller login)
+- shipping methods (`/panel/shipping`) plus an address book on checkout / account
+- size / color variants on products (pick them on the product page; edit in admin)
 
-By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen. Public shop is at `/shop`.
+Default mode needs no backend: `NEXT_PUBLIC_LOCAL_AUTH=true`. Sign in as `09121111111`, grab the code from the toast / next screen (it stays up a bit longer so you can copy it), and you're in. Shop is `/shop`.
 
-### Optional: Kavenegar SMS
+### Optional: Kavenegar
 
 ```
 SMS_PROVIDER=kavenegar
@@ -51,15 +42,16 @@ ZARINPAL_SANDBOX=true
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Use Zarinpal's sandbox merchant for local tests. Callback is `/shop/pay/callback`. For a phone to reach localhost you may need a tunnel and set `NEXT_PUBLIC_APP_URL` to that URL.
+Sandbox merchant is fine for local tries. Callback hits `/shop/pay/callback`. If your phone can't reach localhost, tunnel it and point `NEXT_PUBLIC_APP_URL` at that URL.
 
-If you later hook a real API, set `NEXT_PUBLIC_LOCAL_AUTH=false` and:
+When you eventually plug a real API in:
 
 ```
+NEXT_PUBLIC_LOCAL_AUTH=false
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-## Run it
+## Run
 
 ```bash
 cp .env.example .env.local
@@ -67,10 +59,8 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:3000
+Open http://localhost:3000
 
 ## Later
 
-Stuff I still want to add, whenever I get to it:
-
-- product variants (size / color)
+Nothing urgent. If I come back to this I'll probably poke at returns / refunds or a proper image CDN — not sure yet.

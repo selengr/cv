@@ -12,6 +12,10 @@ import { GetShopProducts } from "@/services/shop";
 import { addToCart, cartCount, readCart, subscribeCart } from "@/helpers/cart";
 import { formatToman } from "@/helpers/catalog";
 import {
+  hasVariants,
+  productStock,
+} from "@/helpers/variants";
+import {
   readWishlist,
   removeFromWishlist,
   subscribeWishlist,
@@ -30,8 +34,9 @@ export default function ShopWishlistPage() {
       const live = products.find((item) => item.id === line.productId);
       return {
         ...line,
-        stock: live?.stock ?? 0,
+        stock: live ? productStock(live) : 0,
         product: live,
+        needsOptions: live ? hasVariants(live) : false,
       };
     });
   }, [data, wish]);
@@ -75,18 +80,27 @@ export default function ShopWishlistPage() {
               </h2>
               <p className="mt-1 text-sm">{formatToman(item.price)}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={!item.product || item.stock < 1}
-                  onClick={() => {
-                    if (!item.product) return;
-                    addToCart(item.product);
-                    toast.success("به سبد اضافه شد");
-                  }}
-                  className="rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-40"
-                >
-                  {item.stock < 1 ? "ناموجود" : "افزودن به سبد"}
-                </button>
+                {item.needsOptions ? (
+                  <Link
+                    href={`/shop/products/${item.productId}`}
+                    className="rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
+                  >
+                    انتخاب گزینه
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!item.product || item.stock < 1}
+                    onClick={() => {
+                      if (!item.product) return;
+                      addToCart(item.product);
+                      toast.success("به سبد اضافه شد");
+                    }}
+                    className="rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-40"
+                  >
+                    {item.stock < 1 ? "ناموجود" : "افزودن به سبد"}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

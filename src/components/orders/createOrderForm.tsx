@@ -10,10 +10,22 @@ import LoadingBox from "@/components/shared/loadingBox";
 import { formatToman } from "@/helpers/catalog";
 import ProductThumb from "@/components/shared/productThumb";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
+import {
+  hasVariants,
+  productStock,
+  variantLabel,
+  variantUnitPrice,
+} from "@/helpers/variants";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";
 
-type Line = { productId: number; qty: number };
+type Line = {
+  productId: number;
+  qty: number;
+  variantId?: number;
+  label?: string;
+  unitPrice: number;
+};
 
 export default function CreateOrderForm() {
   const router = useRouter();
@@ -30,26 +42,74 @@ export default function CreateOrderForm() {
   const [saving, setSaving] = useState(false);
 
   const total = useMemo(() => {
-    return lines.reduce((sum, line) => {
-      const product = products.find((item) => item.id === line.productId);
-      return sum + (product?.price ?? 0) * line.qty;
-    }, 0);
-  }, [lines, products]);
+    return lines.reduce((sum, line) => sum + line.unitPrice * line.qty, 0);
+  }, [lines]);
 
   const addProduct = (product: Product) => {
+    if (hasVariants(product)) {
+      const available = product.variants?.find((item) => item.stock > 0);
+      if (!available) {
+        toast.error(`موجودی «${product.title}» تمام است`);
+        return;
+      }
+      setLines((current) => {
+        const existing = current.find(
+          (line) =>
+            line.productId === product.id && line.variantId === available.id,
+        );
+        const qty = (existing?.qty ?? 0) + 1;
+        if (qty > available.stock) {
+          toast.error(
+            `موجودی «${product.title} (${variantLabel(available)})» تمام است`,
+          );
+          return current;
+        }
+        if (existing) {
+          return current.map((line) =>
+            line.productId === product.id && line.variantId === available.id
+              ? { ...line, qty }
+              : line,
+          );
+        }
+        return [
+          ...current,
+          {
+            productId: product.id,
+            variantId: available.id,
+            qty: 1,
+            label: variantLabel(available),
+            unitPrice: variantUnitPrice(product, available),
+          },
+        ];
+      });
+      toast.info(`اولین گزینه موجود: ${variantLabel(available)}`);
+      return;
+    }
+
     setLines((current) => {
-      const existing = current.find((line) => line.productId === product.id);
+      const existing = current.find(
+        (line) => line.productId === product.id && !line.variantId,
+      );
       const qty = (existing?.qty ?? 0) + 1;
-      if (qty > (product.stock ?? 0)) {
+      if (qty > productStock(product)) {
         toast.error(`موجودی «${product.title}» تمام است`);
         return current;
       }
       if (existing) {
         return current.map((line) =>
-          line.productId === product.id ? { ...line, qty } : line,
+          line.productId === product.id && !line.variantId
+            ? { ...line, qty }
+            : line,
         );
       }
-      return [...current, { productId: product.id, qty: 1 }];
+      return [
+        ...current,
+        {
+          productId: product.id,
+          qty: 1,
+          unitPrice: product.price,
+        },
+      ];
     });
   };
 
@@ -75,7 +135,11 @@ export default function CreateOrderForm() {
         customerName: customerName.trim(),
         customerPhone: phone,
         note: note.trim() || undefined,
-        items: lines,
+        items: lines.map((line) => ({
+          productId: line.productId,
+          qty: line.qty,
+          variantId: line.variantId,
+        })),
       });
       await globalMutate("orders");
       toast.success("سفارش ثبت شد");
@@ -97,7 +161,8 @@ export default function CreateOrderForm() {
     <form onSubmit={submit}>
       <h1 className="font-display text-3xl font-semibold">سفارش دستی</h1>
       <p className="mt-2 text-sm text-[#5c564d]">
-        برای وقتی که مشتری زنگ می‌زند یا از اینستاگرام سفارش می‌دهد.
+        برای وقتی که مشتری زنگ می‌زند یا از اینستاگرام سفارش می‌دهد. اگر محصول
+        سایز/رنگ دارد، اولین گزینه موجود اضافه می‌شود.
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -140,7 +205,7 @@ export default function CreateOrderForm() {
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {products.map((product) => {
             const line = lines.find((item) => item.productId === product.id);
-            const stock = product.stock ?? 0;
+            const stock = productStock(product);
             return (
               <button
                 key={product.id}
@@ -155,14 +220,18 @@ export default function CreateOrderForm() {
                   </span>
                   <span className="truncate">
                     {product.title}
+                    {hasVariants(product) ? " · گزینه‌دار" : ""}
                     {line && (
                       <span className="mr-2 text-[#1f4a45]">
                         × {line.qty.toLocaleString("fa-IR")}
+                        {line.label ? ` (${line.label})` : ""}
                       </span>
                     )}
                   </span>
                 </span>
-                <span className="text-xs text-[#6b6459]">{formatToman(product.price)}</span>
+                <span className="text-xs text-[#6b6459]">
+                  {formatToman(product.price)}
+                </span>
               </button>
             );
           })}

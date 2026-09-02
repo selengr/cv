@@ -39,6 +39,7 @@ import { productMatchesQuery } from "@/helpers/search";
 import { PAYMENT_METHODS, type PaymentMethod } from "@/helpers/payments";
 import { formatStars } from "@/helpers/reviews";
 import { resolveShippingFee } from "@/helpers/shipping";
+import { hasVariants, productStock } from "@/helpers/variants";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";
@@ -119,6 +120,10 @@ export default function ShopPage() {
   }, [category, data, query]);
 
   const onAdd = (product: Product) => {
+    if (hasVariants(product)) {
+      router.push(`/shop/products/${product.id}`);
+      return;
+    }
     const before = lines.find((line) => line.productId === product.id)?.qty ?? 0;
     const next = addToCart(product);
     const after = next.find((line) => line.productId === product.id)?.qty ?? 0;
@@ -236,6 +241,7 @@ export default function ShopPage() {
         items: lines.map((line) => ({
           productId: line.productId,
           qty: line.qty,
+          variantId: line.variantId,
         })),
       });
       clearCart();
@@ -330,7 +336,8 @@ export default function ShopPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {filtered.map((product) => {
-                const stock = product.stock ?? 0;
+                const stock = productStock(product);
+                const needsOptions = hasVariants(product);
                 return (
                   <article
                     key={product.id}
@@ -351,6 +358,9 @@ export default function ShopPage() {
                     <p className="mt-1 line-clamp-2 text-sm text-[#6b6459]">
                       {localizedBody(product, locale)}
                     </p>
+                    {needsOptions && (
+                      <p className="mt-2 text-xs text-[#1f4a45]">سایز / رنگ دارد</p>
+                    )}
                     {(product.reviewCount ?? 0) > 0 && (
                       <p className="mt-2 text-xs text-amber-800">
                         {formatStars(product.ratingAvg ?? 0)}{" "}
@@ -371,7 +381,11 @@ export default function ShopPage() {
                         onClick={() => onAdd(product)}
                         className="flex-1 rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-40"
                       >
-                        {stock < 1 ? "ناموجود" : "افزودن به سبد"}
+                        {stock < 1
+                          ? "ناموجود"
+                          : needsOptions
+                            ? "انتخاب گزینه"
+                            : "افزودن به سبد"}
                       </button>
                       <button
                         type="button"
@@ -413,7 +427,10 @@ export default function ShopPage() {
           ) : (
             <ul className="mt-4 space-y-3">
               {lines.map((line) => (
-                <li key={line.productId} className="flex items-center gap-3">
+                <li
+                  key={`${line.productId}-${line.variantId ?? "base"}`}
+                  className="flex items-center gap-3"
+                >
                   <span className="inline-block w-12 shrink-0">
                     <ProductThumb item={line} className="h-12" compact />
                   </span>
@@ -426,7 +443,11 @@ export default function ShopPage() {
                     min={1}
                     value={line.qty}
                     onChange={(event) =>
-                      setCartQty(line.productId, Number(event.target.value) || 0)
+                      setCartQty(
+                        line.productId,
+                        Number(event.target.value) || 0,
+                        line.variantId,
+                      )
                     }
                     className="w-14 rounded-xl border border-[#14110e]/10 px-2 py-1 text-sm"
                   />

@@ -30,6 +30,13 @@ import {
 import { categoryLabel, formatToman } from "@/helpers/catalog";
 import { formatStars } from "@/helpers/reviews";
 import { formatDay } from "@/helpers/orders";
+import {
+  findVariant,
+  hasVariants,
+  productStock,
+  uniqueOptionValues,
+  variantUnitPrice,
+} from "@/helpers/variants";
 import ValidationError from "@/exceptions/validationError";
 
 export default function ShopProductPage({
@@ -56,6 +63,8 @@ export default function ShopProductPage({
   const [rating, setRating] = useState(5);
   const [body, setBody] = useState("");
   const [saving, setSaving] = useState(false);
+  const [size, setSize] = useState("");
+  const [color, setColor] = useState("");
 
   const product = productData?.product;
   const reviews = reviewData?.reviews ?? [];
@@ -112,8 +121,20 @@ export default function ShopProductPage({
     );
   }
 
-  const stock = product.stock ?? 0;
+  const variantsOn = hasVariants(product);
+  const sizes = uniqueOptionValues(product.variants ?? [], "size");
+  const colors = uniqueOptionValues(product.variants ?? [], "color");
+  const selected = variantsOn
+    ? findVariant(product, { size: size || undefined, color: color || undefined })
+    : undefined;
+  const stock = variantsOn
+    ? selected
+      ? selected.stock
+      : productStock(product)
+    : productStock(product);
+  const price = variantUnitPrice(product, selected);
   const wished = isInWishlist(product.id, wish);
+  const canAdd = variantsOn ? Boolean(selected && selected.stock > 0) : stock > 0;
 
   return (
     <ShopShell cartCount={cartCount(lines)} wishCount={wishlistCount(wish)}>
@@ -132,25 +153,97 @@ export default function ShopProductPage({
             {localizedBody(product, locale)}
           </p>
           <p className="mt-4 font-display text-2xl font-semibold">
-            {formatToman(product.price)}
+            {formatToman(price)}
           </p>
           <p className="mt-2 text-sm text-[#6b6459]">
-            {stock.toLocaleString("fa-IR")} عدد ·{" "}
+            {variantsOn && !selected
+              ? `${productStock(product).toLocaleString("fa-IR")} عدد در کل`
+              : `${stock.toLocaleString("fa-IR")} عدد`}{" "}
+            ·{" "}
             {reviewCount > 0
               ? `${formatStars(ratingAvg)} ${ratingAvg.toLocaleString("fa-IR")} (${reviewCount.toLocaleString("fa-IR")} نظر)`
               : "هنوز نظری نیست"}
           </p>
+
+          {sizes.length > 0 && (
+            <div className="mt-5">
+              <p className="text-xs font-medium text-[#5c564d]">سایز</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {sizes.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setSize(value)}
+                    className={`rounded-full px-3 py-1.5 text-sm ${
+                      size === value
+                        ? "bg-[#1f4a45] text-white"
+                        : "ring-1 ring-[#14110e]/15"
+                    }`}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {colors.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-medium text-[#5c564d]">رنگ</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {colors.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setColor(value)}
+                    className={`rounded-full px-3 py-1.5 text-sm ${
+                      color === value
+                        ? "bg-[#1f4a45] text-white"
+                        : "ring-1 ring-[#14110e]/15"
+                    }`}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-5 flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={stock < 1}
+              disabled={!canAdd}
               onClick={() => {
-                addToCart(product);
+                if (variantsOn && !selected) {
+                  toast.error("سایز یا رنگ را انتخاب کن");
+                  return;
+                }
+                const before =
+                  lines.find(
+                    (line) =>
+                      line.productId === product.id &&
+                      line.variantId === selected?.id,
+                  )?.qty ?? 0;
+                const next = addToCart(product, 1, selected);
+                const after =
+                  next.find(
+                    (line) =>
+                      line.productId === product.id &&
+                      line.variantId === selected?.id,
+                  )?.qty ?? 0;
+                if (after === before) {
+                  toast.error("موجودی این گزینه تمام است");
+                  return;
+                }
                 toast.success("به سبد اضافه شد");
               }}
               className="rounded-full bg-[#1f4a45] px-5 py-2.5 text-sm text-white disabled:opacity-40"
             >
-              {stock < 1 ? "ناموجود" : "افزودن به سبد"}
+              {!canAdd
+                ? variantsOn && !selected
+                  ? "انتخاب گزینه"
+                  : "ناموجود"
+                : "افزودن به سبد"}
             </button>
             <button
               type="button"

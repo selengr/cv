@@ -16,7 +16,7 @@ export async function CreateOrder(values: {
   customerName: string;
   customerPhone: string;
   note?: string;
-  items: Array<Pick<OrderItem, "productId" | "qty">>;
+  items: Array<Pick<OrderItem, "productId" | "qty" | "variantId">>;
 }) {
   return await callApi().post("/orders", values);
 }

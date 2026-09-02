@@ -6,7 +6,6 @@ import { resolveShippingFee } from "@/helpers/shipping";
 import {
   hasVariants,
   normalizeVariants,
-  productStock,
   variantLabel,
   variantUnitPrice,
 } from "@/helpers/variants";
