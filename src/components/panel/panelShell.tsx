@@ -13,6 +13,7 @@ const links = [
   { href: "/panel", label: "خلاصه", exact: true },
   { href: "/panel/analytics", label: "آمار", exact: false },
   { href: "/panel/coupons", label: "تخفیف", exact: false },
+  { href: "/panel/shipping", label: "ارسال", exact: false },
   { href: "/panel/orders", label: "سفارش‌ها", exact: false },
   { href: "/panel/products", label: "محصولات", exact: false },
   { href: "/panel/notifications", label: "اعلان‌ها", exact: false },
@@ -65,7 +66,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
             {access.canAccess("manage_products") && (
               <Link
                 href="/admin/products"
-                className="rounded-full px-3 py-1.5 whitespace-nowrap hover:bg-white/80"
+                className="rounded-full px-3 py-1.5 whitespace-nowrap text-[#3f3a33] hover:bg-white/80"
               >
                 مدیریت
               </Link>
@@ -73,7 +74,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
             <button
               type="button"
               onClick={() => logout("/")}
-              className="rounded-full bg-[#1f4a45] px-3 py-1.5 text-white"
+              className="rounded-full bg-[#1f4a45] px-3 py-1.5 font-medium text-white"
             >
               خروج
             </button>
