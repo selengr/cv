@@ -121,7 +121,6 @@ export default function ProjectShowcase() {
               { href: "/panel/analytics", title: "آمار فروش", body: "نمودار هفت‌روزه و پرفروش‌ها" },
               { href: "/panel/coupons", title: "کد تخفیف", body: "ساخت و فعال‌سازی کوپن" },
               { href: "/panel/shipping", title: "ارسال", body: "روش‌ها، هزینه و ارسال رایگان" },
-              { href: "/admin/products/create", title: "ساخت محصول", body: "فرم محصول + سایز/رنگ" },
               { href: "/panel/notifications", title: "اعلان‌ها", body: "سفارش‌های جدید برای فروشنده" },
               { href: "/panel/products", title: "کاتالوگ پنل", body: "محصولات نمونه با فیلتر" },
               { href: "/panel/orders", title: "سفارش‌ها", body: "لیست، وضعیت، سفارش دستی" },
@@ -130,7 +129,7 @@ export default function ProjectShowcase() {
               { href: "/admin", title: "داشبورد ادمین", body: "خلاصه مدیریت" },
               { href: "/admin/orders", title: "سفارش ادمین", body: "همان لیست در پنل ادمین" },
               { href: "/admin/products", title: "محصولات", body: "لیست، ساخت، ویرایش، حذف" },
-              { href: "/admin/products/create", title: "ساخت محصول", body: "فرم محصول" },
+              { href: "/admin/products/create", title: "ساخت محصول", body: "فرم محصول + سایز/رنگ" },
               { href: "/admin/users", title: "کاربران", body: "تغییر نقش ادمین و فروشنده" },
             ].map((item) => (
               <Link
