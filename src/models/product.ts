@@ -1,3 +1,12 @@
+export type ProductVariant = {
+  id: number;
+  size?: string;
+  color?: string;
+  stock: number;
+  /** optional price override; otherwise product.price */
+  price?: number;
+};
+
 export default interface Product {
   id: number;
   title: string;
@@ -13,4 +22,5 @@ export default interface Product {
   body_en?: string;
   ratingAvg?: number;
   reviewCount?: number;
+  variants?: ProductVariant[];
 }
