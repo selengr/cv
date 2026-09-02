@@ -84,7 +84,7 @@ export default function ShopAccountPage() {
           : await LoginShopCustomer(normalized);
       setToken(res.token);
       setHint(res.debug_code ?? readCustomerOtpHint());
-      if (res.debug_code) toast.info(`کد تست: ${res.debug_code}`);
+      if (res.debug_code) toast.info(`کد تست: ${res.debug_code}`, { autoClose: 8000 });
       else if (res.sms_sent) toast.success("کد پیامک شد");
       setMode("verify");
     } catch (err) {
