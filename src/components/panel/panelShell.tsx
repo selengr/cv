@@ -12,6 +12,7 @@ import { GetNotifications } from "@/services/notification";
 const links = [
   { href: "/panel", label: "خلاصه", exact: true },
   { href: "/panel/analytics", label: "آمار", exact: false },
+  { href: "/panel/coupons", label: "تخفیف", exact: false },
   { href: "/panel/orders", label: "سفارش‌ها", exact: false },
   { href: "/panel/products", label: "محصولات", exact: false },
   { href: "/panel/notifications", label: "اعلان‌ها", exact: false },
