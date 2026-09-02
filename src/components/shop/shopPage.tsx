@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -65,11 +65,8 @@ export default function ShopPage() {
   const [saving, setSaving] = useState(false);
   const [placedId, setPlacedId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!customer) return;
-    setName((current) => current || customer.name);
-    setPhone((current) => current || customer.phone);
-  }, [customer]);
+  const checkoutName = name || customer?.name || "";
+  const checkoutPhone = phone || customer?.phone || "";
 
   const loading = !data && !error;
   const subtotal = cartTotal(lines);
@@ -125,8 +122,8 @@ export default function ShopPage() {
 
   const checkout = async (event: React.FormEvent) => {
     event.preventDefault();
-    const normalized = normalizeIranianPhone(phone);
-    if (name.trim().length < 2) {
+    const normalized = normalizeIranianPhone(checkoutPhone);
+    if (checkoutName.trim().length < 2) {
       toast.error("نام را بنویس");
       return;
     }
@@ -142,7 +139,7 @@ export default function ShopPage() {
     setSaving(true);
     try {
       const order = await CreateShopOrder({
-        customerName: name.trim(),
+        customerName: checkoutName.trim(),
         customerPhone: normalized,
         paymentMethod,
         couponCode: appliedCoupon?.code,
@@ -362,13 +359,13 @@ export default function ShopPage() {
               </p>
             )}
             <input
-              value={name}
+              value={checkoutName}
               onChange={(event) => setName(event.target.value)}
               placeholder="نام"
               className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
             />
             <input
-              value={phone}
+              value={checkoutPhone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="موبایل"
               inputMode="tel"
