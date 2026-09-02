@@ -3,6 +3,13 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { applyCoupon, normalizeCouponCode } from "@/helpers/coupons";
 import { resolveShippingFee } from "@/helpers/shipping";
+import {
+  hasVariants,
+  normalizeVariants,
+  productStock,
+  variantLabel,
+  variantUnitPrice,
+} from "@/helpers/variants";
 import { nextStatuses } from "@/helpers/orders";
 import { makeAuthority, makeRefId } from "@/helpers/payments";
 import { averageRating, clampRating } from "@/helpers/reviews";
@@ -296,6 +303,10 @@ export async function handleLocalRequest(
     const session = getSession();
     if (!session) throw fail(config, 401, { message: "unauthenticated" });
     const products = getProducts();
+    const variants = normalizeVariants(body.variants);
+    const stock = variants
+      ? variants.reduce((sum, item) => sum + item.stock, 0)
+      : Number(body.stock ?? 1);
     const product = {
       id: nextId(products),
       title: String(body.title ?? ""),
@@ -306,9 +317,10 @@ export async function handleLocalRequest(
       price: Number(body.price ?? 0),
       user_id: session.user.id,
       created_at: new Date().toISOString(),
-      stock: Number(body.stock ?? 1),
+      stock,
       emoji: String(body.emoji ?? "📦"),
       image: String(body.image ?? "").trim() || undefined,
+      variants,
     };
     saveProducts([product, ...products]);
     return ok(config, { product }, 201);
@@ -322,6 +334,13 @@ export async function handleLocalRequest(
     const products = getProducts();
     const index = products.findIndex((item) => item.id === id);
     if (index < 0) throw fail(config, 404, { message: "not found" });
+    const variants =
+      body.variants !== undefined
+        ? normalizeVariants(body.variants)
+        : products[index].variants;
+    const stock = variants
+      ? variants.reduce((sum, item) => sum + item.stock, 0)
+      : Number(body.stock ?? products[index].stock ?? 0);
     products[index] = {
       ...products[index],
       title: String(body.title ?? products[index].title),
@@ -336,9 +355,10 @@ export async function handleLocalRequest(
           ? String(body.body_en).trim() || undefined
           : products[index].body_en,
       price: Number(body.price ?? products[index].price),
-      stock: Number(body.stock ?? products[index].stock ?? 0),
+      stock,
       emoji: String(body.emoji ?? products[index].emoji ?? "📦"),
       image: String(body.image ?? products[index].image ?? "").trim() || undefined,
+      variants,
     };
     saveProducts(products);
     recordLowStockAlerts([products[index]]);
@@ -467,26 +487,63 @@ export async function handleLocalRequest(
 
     const products = getProducts();
     const items: OrderItem[] = [];
+    const stockMoves: Array<{
+      productId: number;
+      variantId?: number;
+      qty: number;
+    }> = [];
+
     for (const raw of rawItems) {
-      const row = raw as { productId?: number; qty?: number };
+      const row = raw as { productId?: number; qty?: number; variantId?: number };
       const product = products.find((item) => item.id === Number(row.productId));
       const qty = Number(row.qty ?? 0);
       if (!product || qty < 1) {
         throw fail(config, 422, { errors: { items: "محصول یا تعداد درست نیست" } });
       }
-      if ((product.stock ?? 0) < qty) {
-        throw fail(config, 422, {
-          errors: { items: `موجودی «${product.title}» کافی نیست` },
+
+      if (hasVariants(product)) {
+        const variantId = Number(row.variantId ?? 0);
+        const variant = product.variants?.find((item) => item.id === variantId);
+        if (!variant) {
+          throw fail(config, 422, {
+            errors: { items: `برای «${product.title}» سایز/رنگ را انتخاب کن` },
+          });
+        }
+        if (variant.stock < qty) {
+          throw fail(config, 422, {
+            errors: {
+              items: `موجودی «${product.title} (${variantLabel(variant)})» کافی نیست`,
+            },
+          });
+        }
+        items.push({
+          productId: product.id,
+          title: `${product.title} (${variantLabel(variant)})`,
+          emoji: product.emoji ?? "📦",
+          image: product.image,
+          price: variantUnitPrice(product, variant),
+          qty,
+          variantId: variant.id,
+          size: variant.size,
+          color: variant.color,
         });
+        stockMoves.push({ productId: product.id, variantId: variant.id, qty });
+      } else {
+        if ((product.stock ?? 0) < qty) {
+          throw fail(config, 422, {
+            errors: { items: `موجودی «${product.title}» کافی نیست` },
+          });
+        }
+        items.push({
+          productId: product.id,
+          title: product.title,
+          emoji: product.emoji ?? "📦",
+          image: product.image,
+          price: product.price,
+          qty,
+        });
+        stockMoves.push({ productId: product.id, qty });
       }
-      items.push({
-        productId: product.id,
-        title: product.title,
-        emoji: product.emoji ?? "📦",
-        image: product.image,
-        price: product.price,
-        qty,
-      });
     }
 
     const paymentMethod =
@@ -518,9 +575,24 @@ export async function handleLocalRequest(
     }
 
     const nextProducts = products.map((product) => {
-      const taken = items.find((item) => item.productId === product.id);
-      if (!taken) return product;
-      return { ...product, stock: (product.stock ?? 0) - taken.qty };
+      const moves = stockMoves.filter((move) => move.productId === product.id);
+      if (moves.length === 0) return product;
+      if (hasVariants(product) && product.variants) {
+        const variants = product.variants.map((variant) => {
+          const taken = moves
+            .filter((move) => move.variantId === variant.id)
+            .reduce((sum, move) => sum + move.qty, 0);
+          if (!taken) return variant;
+          return { ...variant, stock: variant.stock - taken };
+        });
+        return {
+          ...product,
+          variants,
+          stock: variants.reduce((sum, item) => sum + item.stock, 0),
+        };
+      }
+      const taken = moves.reduce((sum, move) => sum + move.qty, 0);
+      return { ...product, stock: (product.stock ?? 0) - taken };
     });
     saveProducts(nextProducts);
     recordLowStockAlerts(nextProducts);

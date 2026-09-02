@@ -7,12 +7,13 @@ import type Customer from "@/models/customer";
 import type Address from "@/models/address";
 import type ShippingMethod from "@/models/shipping";
 import { seedShippingMethods } from "@/helpers/shipping";
+import { productStock } from "@/helpers/variants";
 import type { StockAlert } from "@/helpers/stockAlerts";
 import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "10";
+const DATA_VERSION = "11";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -106,6 +107,12 @@ function seedProducts(): Product[] {
       stock: 11,
       emoji: "👟",
       image: "/products/shoes.jpg",
+      variants: [
+        { id: 1, size: "40", color: "سفید", stock: 3 },
+        { id: 2, size: "41", color: "سفید", stock: 4 },
+        { id: 3, size: "42", color: "سفید", stock: 2 },
+        { id: 4, size: "41", color: "مشکی", stock: 2 },
+      ],
     },
     {
       id: 2,
@@ -120,6 +127,10 @@ function seedProducts(): Product[] {
       stock: 3,
       emoji: "👜",
       image: "/products/bag.jpg",
+      variants: [
+        { id: 1, color: "قهوه‌ای", stock: 2 },
+        { id: 2, color: "مشکی", stock: 1 },
+      ],
     },
     {
       id: 3,
@@ -134,6 +145,15 @@ function seedProducts(): Product[] {
       stock: 25,
       emoji: "👕",
       image: "/products/tshirt.jpg",
+      variants: [
+        { id: 1, size: "S", color: "سفید", stock: 4 },
+        { id: 2, size: "M", color: "سفید", stock: 5 },
+        { id: 3, size: "L", color: "سفید", stock: 3 },
+        { id: 4, size: "S", color: "مشکی", stock: 3 },
+        { id: 5, size: "M", color: "مشکی", stock: 5 },
+        { id: 6, size: "L", color: "مشکی", stock: 3 },
+        { id: 7, size: "M", color: "آبی", stock: 2 },
+      ],
     },
     {
       id: 4,
@@ -148,6 +168,12 @@ function seedProducts(): Product[] {
       stock: 8,
       emoji: "👖",
       image: "/products/jeans.jpg",
+      variants: [
+        { id: 1, size: "30", color: "آبی روشن", stock: 2 },
+        { id: 2, size: "32", color: "آبی روشن", stock: 3 },
+        { id: 3, size: "34", color: "آبی تیره", stock: 2 },
+        { id: 4, size: "36", color: "آبی تیره", stock: 1 },
+      ],
     },
     {
       id: 5,
@@ -162,6 +188,11 @@ function seedProducts(): Product[] {
       stock: 15,
       emoji: "🧢",
       image: "/products/cap.jpg",
+      variants: [
+        { id: 1, color: "مشکی", stock: 6 },
+        { id: 2, color: "کرم", stock: 5 },
+        { id: 3, color: "سبز", stock: 4 },
+      ],
     },
     {
       id: 6,
@@ -190,6 +221,10 @@ function seedProducts(): Product[] {
       stock: 6,
       emoji: "🎒",
       image: "/products/backpack.jpg",
+      variants: [
+        { id: 1, color: "خاکستری", stock: 3 },
+        { id: 2, color: "سرمه‌ای", stock: 3 },
+      ],
     },
     {
       id: 8,
@@ -505,7 +540,7 @@ export function recordLowStockAlerts(products: Product[]) {
   let changed = false;
 
   for (const product of products) {
-    const stock = product.stock ?? 0;
+    const stock = productStock(product);
     if (stock > STOCK_ALERT_THRESHOLD) continue;
     const hasOpen = next.some(
       (alert) => alert.productId === product.id && !alert.read,
