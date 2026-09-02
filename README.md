@@ -2,7 +2,7 @@
 
 Admin panel for a small shop. Login with an Iranian phone number, manage products, that's basically it.
 
-This repo used to be called `cv` which is confusing. The app name is Shopy. Rename it on GitHub if you haven't yet:
+The app name is Shopy. 
 
 ```bash
 gh repo rename shopy
@@ -28,6 +28,7 @@ I started this around 2022 with Next.js 12. It sat for a while. I updated the st
 - shop catalog FA/EN toggle
 - discount codes / coupons (`/panel/coupons`, checkout codes like WELCOME10)
 - customer shop accounts (`/shop/account`) with order history
+- shipping methods (`/panel/shipping`) and customer address book at checkout / account
 - UI is RTL / Persian (EN flips shop direction)
 
 By default it runs without a backend (`NEXT_PUBLIC_LOCAL_AUTH=true`). Login with `09121111111` and use the code shown on the next screen. Public shop is at `/shop`.
@@ -72,5 +73,4 @@ Then open http://localhost:3000
 
 Stuff I still want to add, whenever I get to it:
 
-- shipping methods and address book
 - product variants (size / color)
