@@ -2,6 +2,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { applyCoupon, normalizeCouponCode } from "@/helpers/coupons";
+import { resolveShippingFee } from "@/helpers/shipping";
 import { nextStatuses } from "@/helpers/orders";
 import { makeAuthority, makeRefId } from "@/helpers/payments";
 import { averageRating, clampRating } from "@/helpers/reviews";
@@ -10,6 +11,7 @@ import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
 import type { ShopRole } from "@/helpers/roles";
 import type { OrderItem, OrderStatus } from "@/models/order";
 import type { CouponType } from "@/models/coupon";
+import type Address from "@/models/address";
 import {
   ADMIN_PERMISSIONS,
   clearCustomerOtpHint,
@@ -18,6 +20,7 @@ import {
   clearPendingOtp,
   clearOtpHint,
   clearSession,
+  getAddresses,
   getCoupons,
   getCustomerPendingOtp,
   getCustomerSession,
@@ -27,6 +30,7 @@ import {
   getOrders,
   getReviews,
   getSession,
+  getShippingMethods,
   getStockAlerts,
   getOrderNotifications,
   getUsers,
@@ -36,6 +40,7 @@ import {
   randomOtp,
   randomToken,
   recordLowStockAlerts,
+  saveAddresses,
   saveCoupons,
   saveCustomerOtpHint,
   saveCustomerPendingOtp,
@@ -48,6 +53,7 @@ import {
   saveProducts,
   saveReviews,
   saveSession,
+  saveShippingMethods,
   saveStockAlerts,
   saveUsers,
 } from "@/helpers/localDb";
@@ -526,6 +532,120 @@ export async function handleLocalRequest(
         ? customerSession.customer.id
         : undefined;
 
+    const goodsTotal = Math.max(0, subtotal - discount);
+    const shippingMethodId = Number(body.shippingMethodId ?? 0);
+    const shippingMethods = getShippingMethods();
+    const shippingMethod =
+      shippingMethods.find((item) => item.id === shippingMethodId) ??
+      shippingMethods.find((item) => item.key === "pickup" && item.active) ??
+      shippingMethods.find((item) => item.active);
+
+    if (!shippingMethod) {
+      throw fail(config, 422, {
+        errors: { shippingMethodId: "روش ارسال پیدا نشد" },
+      });
+    }
+
+    const shippingResult = resolveShippingFee(shippingMethod, goodsTotal);
+    if (!shippingResult.ok) {
+      throw fail(config, 422, {
+        errors: { shippingMethodId: shippingResult.message },
+      });
+    }
+
+    let orderAddress:
+      | {
+          label?: string;
+          recipientName: string;
+          phone: string;
+          province: string;
+          city: string;
+          street: string;
+          postalCode?: string;
+        }
+      | undefined;
+
+    if (shippingMethod.requiresAddress) {
+      const addressId = Number(body.addressId ?? 0);
+      if (addressId > 0) {
+        if (!customerId) {
+          throw fail(config, 422, {
+            errors: { addressId: "برای آدرس ذخیره‌شده باید وارد شوی" },
+          });
+        }
+        const saved = getAddresses().find(
+          (item) => item.id === addressId && item.customerId === customerId,
+        );
+        if (!saved) {
+          throw fail(config, 422, {
+            errors: { addressId: "آدرس پیدا نشد" },
+          });
+        }
+        orderAddress = {
+          label: saved.label,
+          recipientName: saved.recipientName,
+          phone: saved.phone,
+          province: saved.province,
+          city: saved.city,
+          street: saved.street,
+          postalCode: saved.postalCode,
+        };
+      } else {
+        const raw = (body.address ?? {}) as Record<string, unknown>;
+        const recipientName = String(raw.recipientName ?? customerName).trim();
+        const addrPhone = normalizeIranianPhone(
+          String(raw.phone ?? customerPhone),
+        );
+        const province = String(raw.province ?? "").trim();
+        const city = String(raw.city ?? "").trim();
+        const street = String(raw.street ?? "").trim();
+        const postalCode = String(raw.postalCode ?? "").trim() || undefined;
+        const label = String(raw.label ?? "").trim() || undefined;
+        if (recipientName.length < 2) {
+          throw fail(config, 422, {
+            errors: { address: "نام گیرنده را بنویس" },
+          });
+        }
+        if (!iranianPhoneRegExp.test(addrPhone)) {
+          throw fail(config, 422, {
+            errors: { address: "موبایل گیرنده درست نیست" },
+          });
+        }
+        if (province.length < 2 || city.length < 2 || street.length < 5) {
+          throw fail(config, 422, {
+            errors: { address: "آدرس کامل را بنویس (استان، شهر، خیابان)" },
+          });
+        }
+        orderAddress = {
+          label,
+          recipientName,
+          phone: addrPhone,
+          province,
+          city,
+          street,
+          postalCode,
+        };
+
+        if (body.saveAddress && customerId) {
+          const addresses = getAddresses();
+          const next: Address = {
+            id: nextId(addresses),
+            customerId,
+            label: label || "آدرس",
+            recipientName,
+            phone: addrPhone,
+            province,
+            city,
+            street,
+            postalCode,
+            isDefault: addresses.filter((a) => a.customerId === customerId)
+              .length === 0,
+          };
+          saveAddresses([next, ...addresses]);
+        }
+      }
+    }
+
     const orders = getOrders();
     const order = {
       id: nextId(orders),
@@ -535,7 +655,11 @@ export async function handleLocalRequest(
       subtotal,
       discount: discount || undefined,
       couponCode,
-      total: Math.max(0, subtotal - discount),
+      shippingMethodId: shippingMethod.id,
+      shippingTitle: shippingMethod.title,
+      shippingFee: shippingResult.fee || undefined,
+      address: orderAddress,
+      total: goodsTotal + shippingResult.fee,
       status: "pending" as OrderStatus,
       note: String(body.note ?? "").trim() || undefined,
       created_at: new Date().toISOString(),
@@ -1004,6 +1128,203 @@ export async function handleLocalRequest(
         item.customerPhone === session.customer.phone,
     );
     return ok(config, { orders });
+  }
+
+  if (method === "GET" && path === "/shop/shipping-methods") {
+    const methods = getShippingMethods().filter((item) => item.active);
+    return ok(config, { methods });
+  }
+
+  if (method === "GET" && path === "/shipping-methods") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { methods: getShippingMethods() });
+  }
+
+  if (method === "PATCH" && path.match(/^\/shipping-methods\/(\d+)$/)) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(path.split("/").pop());
+    const methods = getShippingMethods();
+    const index = methods.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = methods[index];
+    const fee =
+      body.fee !== undefined ? Number(body.fee) : current.fee;
+    const freeAbove =
+      body.freeAbove === null || body.freeAbove === ""
+        ? undefined
+        : body.freeAbove !== undefined
+          ? Number(body.freeAbove)
+          : current.freeAbove;
+    if (!Number.isFinite(fee) || fee < 0) {
+      throw fail(config, 422, { errors: { fee: "هزینه درست نیست" } });
+    }
+    if (
+      freeAbove !== undefined &&
+      (!Number.isFinite(freeAbove) || freeAbove < 0)
+    ) {
+      throw fail(config, 422, {
+        errors: { freeAbove: "آستانه ارسال رایگان درست نیست" },
+      });
+    }
+    methods[index] = {
+      ...current,
+      fee,
+      freeAbove,
+      active:
+        body.active !== undefined ? Boolean(body.active) : current.active,
+      title:
+        typeof body.title === "string" && body.title.trim()
+          ? String(body.title).trim()
+          : current.title,
+      description:
+        typeof body.description === "string" && body.description.trim()
+          ? String(body.description).trim()
+          : current.description,
+    };
+    saveShippingMethods(methods);
+    return ok(config, { method: methods[index] });
+  }
+
+  if (method === "GET" && path === "/shop/account/addresses") {
+    const session = getCustomerSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const addresses = getAddresses().filter(
+      (item) => item.customerId === session.customer.id,
+    );
+    return ok(config, { addresses });
+  }
+
+  if (method === "POST" && path === "/shop/account/addresses") {
+    const session = getCustomerSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const label = String(body.label ?? "").trim() || "آدرس";
+    const recipientName = String(body.recipientName ?? "").trim();
+    const phone = normalizeIranianPhone(String(body.phone ?? ""));
+    const province = String(body.province ?? "").trim();
+    const city = String(body.city ?? "").trim();
+    const street = String(body.street ?? "").trim();
+    const postalCode = String(body.postalCode ?? "").trim() || undefined;
+    if (recipientName.length < 2) {
+      throw fail(config, 422, {
+        errors: { recipientName: "نام گیرنده را بنویس" },
+      });
+    }
+    if (!iranianPhoneRegExp.test(phone)) {
+      throw fail(config, 422, { errors: { phone: "شماره درست نیست" } });
+    }
+    if (province.length < 2 || city.length < 2 || street.length < 5) {
+      throw fail(config, 422, {
+        errors: { street: "آدرس کامل را بنویس" },
+      });
+    }
+    const addresses = getAddresses();
+    const mine = addresses.filter(
+      (item) => item.customerId === session.customer.id,
+    );
+    const address: Address = {
+      id: nextId(addresses),
+      customerId: session.customer.id,
+      label,
+      recipientName,
+      phone,
+      province,
+      city,
+      street,
+      postalCode,
+      isDefault: Boolean(body.isDefault) || mine.length === 0,
+    };
+    let next = [address, ...addresses];
+    if (address.isDefault) {
+      next = next.map((item) =>
+        item.customerId === session.customer.id && item.id !== address.id
+          ? { ...item, isDefault: false }
+          : item,
+      );
+    }
+    saveAddresses(next);
+    return ok(config, { address }, 201);
+  }
+
+  const addressMatch = path.match(/^\/shop\/account\/addresses\/(\d+)$/);
+  if (addressMatch && (method === "DELETE" || method === "PATCH")) {
+    const session = getCustomerSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(addressMatch[1]);
+    const addresses = getAddresses();
+    const index = addresses.findIndex(
+      (item) => item.id === id && item.customerId === session.customer.id,
+    );
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+
+    if (method === "DELETE") {
+      const removed = addresses[index];
+      let next = addresses.filter((item) => item.id !== id);
+      if (removed.isDefault) {
+        const first = next.find(
+          (item) => item.customerId === session.customer.id,
+        );
+        if (first) {
+          next = next.map((item) =>
+            item.id === first.id ? { ...item, isDefault: true } : item,
+          );
+        }
+      }
+      saveAddresses(next);
+      return ok(config, { status: "success" });
+    }
+
+    const current = addresses[index];
+    const updated: Address = {
+      ...current,
+      label:
+        typeof body.label === "string" && body.label.trim()
+          ? String(body.label).trim()
+          : current.label,
+      recipientName:
+        typeof body.recipientName === "string" && body.recipientName.trim()
+          ? String(body.recipientName).trim()
+          : current.recipientName,
+      phone:
+        body.phone !== undefined
+          ? normalizeIranianPhone(String(body.phone))
+          : current.phone,
+      province:
+        typeof body.province === "string" && body.province.trim()
+          ? String(body.province).trim()
+          : current.province,
+      city:
+        typeof body.city === "string" && body.city.trim()
+          ? String(body.city).trim()
+          : current.city,
+      street:
+        typeof body.street === "string" && body.street.trim()
+          ? String(body.street).trim()
+          : current.street,
+      postalCode:
+        body.postalCode !== undefined
+          ? String(body.postalCode).trim() || undefined
+          : current.postalCode,
+      isDefault:
+        body.isDefault !== undefined
+          ? Boolean(body.isDefault)
+          : current.isDefault,
+    };
+    if (!iranianPhoneRegExp.test(updated.phone)) {
+      throw fail(config, 422, { errors: { phone: "شماره درست نیست" } });
+    }
+    let next = [...addresses];
+    next[index] = updated;
+    if (updated.isDefault) {
+      next = next.map((item) =>
+        item.customerId === session.customer.id && item.id !== updated.id
+          ? { ...item, isDefault: false }
+          : item,
+      );
+    }
+    saveAddresses(next);
+    return ok(config, { address: updated });
   }
 
   if (method === "POST" && path === "/auth/logout") {
