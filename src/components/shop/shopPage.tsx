@@ -38,9 +38,14 @@ import {
 import { productMatchesQuery } from "@/helpers/search";
 import { PAYMENT_METHODS, type PaymentMethod } from "@/helpers/payments";
 import { formatStars } from "@/helpers/reviews";
+import { resolveShippingFee } from "@/helpers/shipping";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Product from "@/models/product";
+import {
+  GetMyAddresses,
+  GetShopShippingMethods,
+} from "@/services/shipping";
 
 export default function ShopPage() {
   const router = useRouter();
@@ -48,6 +53,14 @@ export default function ShopPage() {
   const { data: customer } = useSWR("shop/customer/me", GetShopCustomerMe, {
     shouldRetryOnError: false,
   });
+  const { data: shippingMethods } = useSWR(
+    "shop/shipping-methods",
+    GetShopShippingMethods,
+  );
+  const { data: addresses, mutate: mutateAddresses } = useSWR(
+    customer ? "shop/account/addresses" : null,
+    GetMyAddresses,
+  );
   const lines = useSyncExternalStore(subscribeCart, readCart, () => []);
   const wish = useSyncExternalStore(subscribeWishlist, readWishlist, () => []);
   const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "fa" as const);
@@ -62,6 +75,16 @@ export default function ShopPage() {
     total: number;
   } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+  const [shippingMethodId, setShippingMethodId] = useState<number | null>(null);
+  const [addressId, setAddressId] = useState<number | "new" | null>(null);
+  const [addrLabel, setAddrLabel] = useState("خانه");
+  const [addrName, setAddrName] = useState("");
+  const [addrPhone, setAddrPhone] = useState("");
+  const [province, setProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [street, setStreet] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [saveAddress, setSaveAddress] = useState(false);
   const [saving, setSaving] = useState(false);
   const [placedId, setPlacedId] = useState<number | null>(null);
 
@@ -70,7 +93,23 @@ export default function ShopPage() {
 
   const loading = !data && !error;
   const subtotal = cartTotal(lines);
-  const payable = appliedCoupon?.total ?? subtotal;
+  const goodsTotal = appliedCoupon?.total ?? subtotal;
+  const methods = shippingMethods ?? [];
+  const selectedShipping =
+    methods.find((item) => item.id === shippingMethodId) ??
+    methods[0] ??
+    null;
+  const shippingResolved = selectedShipping
+    ? resolveShippingFee(selectedShipping, goodsTotal)
+    : null;
+  const shippingFee =
+    shippingResolved?.ok === true ? shippingResolved.fee : 0;
+  const payable = goodsTotal + shippingFee;
+  const savedAddresses = addresses ?? [];
+  const needsAddress = selectedShipping?.requiresAddress ?? false;
+  const usingNewAddress =
+    needsAddress &&
+    (addressId === "new" || addressId === null || savedAddresses.length === 0);
   const filtered = useMemo(() => {
     const products = data ?? [];
     return products.filter((item) => {
@@ -135,6 +174,53 @@ export default function ShopPage() {
       toast.error("سبد خالی است");
       return;
     }
+    if (!selectedShipping) {
+      toast.error("روش ارسال را انتخاب کن");
+      return;
+    }
+
+    let payloadAddress:
+      | {
+          label?: string;
+          recipientName: string;
+          phone: string;
+          province: string;
+          city: string;
+          street: string;
+          postalCode?: string;
+        }
+      | undefined;
+    let payloadAddressId: number | undefined;
+
+    if (selectedShipping.requiresAddress) {
+      if (!usingNewAddress && typeof addressId === "number") {
+        payloadAddressId = addressId;
+      } else {
+        const recipient = (addrName || checkoutName).trim();
+        const addrNormalized = normalizeIranianPhone(addrPhone || checkoutPhone);
+        if (recipient.length < 2) {
+          toast.error("نام گیرنده را بنویس");
+          return;
+        }
+        if (!iranianPhoneRegExp.test(addrNormalized)) {
+          toast.error("موبایل گیرنده درست نیست");
+          return;
+        }
+        if (province.trim().length < 2 || city.trim().length < 2 || street.trim().length < 5) {
+          toast.error("آدرس کامل را بنویس");
+          return;
+        }
+        payloadAddress = {
+          label: addrLabel.trim() || undefined,
+          recipientName: recipient,
+          phone: addrNormalized,
+          province: province.trim(),
+          city: city.trim(),
+          street: street.trim(),
+          postalCode: postalCode.trim() || undefined,
+        };
+      }
+    }
 
     setSaving(true);
     try {
@@ -143,6 +229,10 @@ export default function ShopPage() {
         customerPhone: normalized,
         paymentMethod,
         couponCode: appliedCoupon?.code,
+        shippingMethodId: selectedShipping.id,
+        addressId: payloadAddressId,
+        address: payloadAddress,
+        saveAddress: Boolean(customer && saveAddress && payloadAddress),
         items: lines.map((line) => ({
           productId: line.productId,
           qty: line.qty,
@@ -153,6 +243,7 @@ export default function ShopPage() {
       setCouponInput("");
       setPlacedId(order.id);
       await mutate();
+      if (customer) await mutateAddresses();
       if (paymentMethod === "online") {
         toast.success("برو برای پرداخت آزمایشی");
         router.push(`/shop/pay/${order.id}`);
@@ -344,13 +435,21 @@ export default function ShopPage() {
             </ul>
           )}
 
-          <p className="mt-4 font-medium">{formatToman(subtotal)}</p>
+          <p className="mt-4 text-sm text-[#5c564d]">
+            جمع کالا {formatToman(subtotal)}
+          </p>
           {appliedCoupon && (
             <p className="mt-1 text-sm text-emerald-800">
-              تخفیف {appliedCoupon.code}: −{formatToman(appliedCoupon.discount)} →{" "}
-              {formatToman(payable)}
+              تخفیف {appliedCoupon.code}: −{formatToman(appliedCoupon.discount)}
             </p>
           )}
+          {selectedShipping && (
+            <p className="mt-1 text-sm text-[#5c564d]">
+              ارسال ({selectedShipping.title}):{" "}
+              {shippingFee === 0 ? "رایگان" : formatToman(shippingFee)}
+            </p>
+          )}
+          <p className="mt-2 font-medium">قابل پرداخت {formatToman(payable)}</p>
 
           <form onSubmit={checkout} className="mt-4 space-y-3">
             {customer && (
@@ -392,6 +491,174 @@ export default function ShopPage() {
               </button>
             </div>
             <p className="text-[11px] text-[#6b6459]">نمونه: WELCOME10 یا SAVE50K</p>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-[#5c564d]">روش ارسال</p>
+              {methods.map((method) => {
+                const resolved = resolveShippingFee(method, goodsTotal);
+                const fee = resolved.ok ? resolved.fee : method.fee;
+                const selected =
+                  (shippingMethodId ?? methods[0]?.id) === method.id;
+                return (
+                  <label
+                    key={method.id}
+                    className={`flex cursor-pointer flex-col rounded-2xl border px-3 py-2.5 text-sm ${
+                      selected
+                        ? "border-[#1f4a45] bg-[#1f4a45]/5"
+                        : "border-[#14110e]/10"
+                    }`}
+                  >
+                    <span className="flex items-center justify-between gap-2 font-medium">
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="shipping"
+                          checked={selected}
+                          onChange={() => {
+                            setShippingMethodId(method.id);
+                            if (!method.requiresAddress) setAddressId(null);
+                            else if (savedAddresses.length > 0) {
+                              const preferred =
+                                savedAddresses.find((a) => a.isDefault) ??
+                                savedAddresses[0];
+                              setAddressId(preferred.id);
+                            } else {
+                              setAddressId("new");
+                            }
+                          }}
+                        />
+                        {method.title}
+                      </span>
+                      <span className="text-xs text-[#5c564d]">
+                        {fee === 0 ? "رایگان" : formatToman(fee)}
+                      </span>
+                    </span>
+                    <span className="mt-1 text-xs text-[#6b6459]">
+                      {method.description}
+                      {method.freeAbove
+                        ? ` · رایگان از ${formatToman(method.freeAbove)}`
+                        : ""}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {needsAddress && (
+              <div className="space-y-2 rounded-2xl border border-[#14110e]/8 bg-white/60 p-3">
+                <p className="text-xs font-medium text-[#5c564d]">آدرس تحویل</p>
+                {savedAddresses.length > 0 && (
+                  <div className="space-y-2">
+                    {savedAddresses.map((addr) => (
+                      <label
+                        key={addr.id}
+                        className={`block cursor-pointer rounded-xl border px-3 py-2 text-sm ${
+                          addressId === addr.id
+                            ? "border-[#1f4a45] bg-[#1f4a45]/5"
+                            : "border-[#14110e]/10"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 font-medium">
+                          <input
+                            type="radio"
+                            name="address"
+                            checked={addressId === addr.id}
+                            onChange={() => setAddressId(addr.id)}
+                          />
+                          {addr.label}
+                          {addr.isDefault ? " · پیش‌فرض" : ""}
+                        </span>
+                        <span className="mt-1 block text-xs text-[#6b6459]">
+                          {addr.province}، {addr.city}، {addr.street}
+                        </span>
+                      </label>
+                    ))}
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="address"
+                        checked={addressId === "new"}
+                        onChange={() => setAddressId("new")}
+                      />
+                      آدرس جدید
+                    </label>
+                  </div>
+                )}
+                {usingNewAddress && (
+                  <div className="space-y-2">
+                    <input
+                      value={addrLabel}
+                      onChange={(event) => setAddrLabel(event.target.value)}
+                      placeholder="برچسب (خانه / محل کار)"
+                      className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={addrName || checkoutName}
+                      onChange={(event) => setAddrName(event.target.value)}
+                      placeholder="نام گیرنده"
+                      className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={addrPhone || checkoutPhone}
+                      onChange={(event) => setAddrPhone(event.target.value)}
+                      placeholder="موبایل گیرنده"
+                      inputMode="tel"
+                      dir="ltr"
+                      className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={province}
+                        onChange={(event) => setProvince(event.target.value)}
+                        placeholder="استان"
+                        className="rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                      />
+                      <input
+                        value={city}
+                        onChange={(event) => setCity(event.target.value)}
+                        placeholder="شهر"
+                        className="rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <textarea
+                      value={street}
+                      onChange={(event) => setStreet(event.target.value)}
+                      placeholder="خیابان، پلاک، واحد"
+                      rows={2}
+                      className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={postalCode}
+                      onChange={(event) => setPostalCode(event.target.value)}
+                      placeholder="کد پستی (اختیاری)"
+                      dir="ltr"
+                      className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                    />
+                    {customer && (
+                      <label className="flex items-center gap-2 text-xs text-[#5c564d]">
+                        <input
+                          type="checkbox"
+                          checked={saveAddress}
+                          onChange={(event) =>
+                            setSaveAddress(event.target.checked)
+                          }
+                        />
+                        ذخیره در دفترچه آدرس
+                      </label>
+                    )}
+                    {!customer && (
+                      <p className="text-[11px] text-[#6b6459]">
+                        برای ذخیره آدرس‌ها{" "}
+                        <Link href="/shop/account" className="underline">
+                          وارد حساب شو
+                        </Link>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               {PAYMENT_METHODS.map((method) => (
                 <label

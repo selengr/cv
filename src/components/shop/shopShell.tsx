@@ -23,12 +23,15 @@ export default function ShopShell({
   const fa = locale === "fa";
 
   return (
-    <div className="min-h-screen bg-[#f4efe6] text-[#14110e]" dir={fa ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-[#f4efe6] font-sans text-[#14110e]" dir={fa ? "rtl" : "ltr"}>
       <header className="sticky top-0 z-20 border-b border-[#14110e]/8 bg-[#f4efe6]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <Logo />
-          <nav className="flex items-center gap-2 text-sm">
-            <Link href="/shop" className="rounded-full bg-[#1f4a45] px-3 py-1.5 text-white">
+          <nav className="flex items-center gap-2 text-[0.92rem]">
+            <Link
+              href="/shop"
+              className="rounded-full bg-[#1f4a45] px-3 py-1.5 font-medium text-white"
+            >
               {fa ? "فروشگاه" : "Shop"}
               {cartCount > 0 && (
                 <span className="mx-1.5 rounded-full bg-white/20 px-1.5">
@@ -36,7 +39,10 @@ export default function ShopShell({
                 </span>
               )}
             </Link>
-            <Link href="/shop/wishlist" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+            <Link
+              href="/shop/wishlist"
+              className="rounded-full px-3 py-1.5 text-[#3f3a33] hover:bg-white/80"
+            >
               {fa ? "علاقه‌مندی" : "Wishlist"}
               {wishCount > 0 && (
                 <span className="mx-1.5 text-[#1f4a45]">
@@ -44,19 +50,28 @@ export default function ShopShell({
                 </span>
               )}
             </Link>
-            <Link href="/shop/track" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+            <Link
+              href="/shop/track"
+              className="rounded-full px-3 py-1.5 text-[#3f3a33] hover:bg-white/80"
+            >
               {fa ? "پیگیری" : "Track"}
             </Link>
-            <Link href="/shop/account" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+            <Link
+              href="/shop/account"
+              className="rounded-full px-3 py-1.5 text-[#3f3a33] hover:bg-white/80"
+            >
               {fa ? "حساب" : "Account"}
             </Link>
-            <Link href="/panel" className="rounded-full px-3 py-1.5 hover:bg-white/80">
+            <Link
+              href="/panel"
+              className="rounded-full px-3 py-1.5 text-[#3f3a33] hover:bg-white/80"
+            >
               {fa ? "پنل" : "Panel"}
             </Link>
             <button
               type="button"
               onClick={() => writeLocale(fa ? "en" : "fa")}
-              className="rounded-full px-3 py-1.5 ring-1 ring-[#14110e]/15"
+              className="rounded-full px-3 py-1.5 text-[#3f3a33] ring-1 ring-[#14110e]/15"
               aria-label="Toggle language"
             >
               {fa ? "EN" : "FA"}
