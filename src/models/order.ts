@@ -12,6 +12,9 @@ export interface OrderItem {
   image?: string;
   price: number;
   qty: number;
+  variantId?: number;
+  size?: string;
+  color?: string;
 }
 
 export default interface Order {

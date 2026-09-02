@@ -1,9 +1,19 @@
 import type Product from "@/models/product";
+import type { ProductVariant } from "@/models/product";
+import {
+  hasVariants,
+  productStock,
+  variantLabel,
+  variantUnitPrice,
+} from "@/helpers/variants";
 
 const CART_KEY = "shopy_cart";
 
 export type CartLine = {
   productId: number;
+  variantId?: number;
+  size?: string;
+  color?: string;
   title: string;
   emoji?: string;
   image?: string;
@@ -13,6 +23,10 @@ export type CartLine = {
 
 function canUseStorage() {
   return typeof window !== "undefined";
+}
+
+function lineKey(productId: number, variantId?: number) {
+  return `${productId}:${variantId ?? "base"}`;
 }
 
 export function readCart(): CartLine[] {
@@ -48,27 +62,47 @@ export function subscribeCart(onStoreChange: () => void) {
   };
 }
 
-export function addToCart(product: Product, qty = 1): CartLine[] {
+export function addToCart(
+  product: Product,
+  qty = 1,
+  variant?: ProductVariant,
+): CartLine[] {
   const lines = readCart();
-  const existing = lines.find((line) => line.productId === product.id);
+  if (hasVariants(product) && !variant) return lines;
+
+  const stock = variant ? variant.stock : productStock(product);
+  const existing = lines.find(
+    (line) =>
+      lineKey(line.productId, line.variantId) ===
+      lineKey(product.id, variant?.id),
+  );
   const nextQty = (existing?.qty ?? 0) + qty;
-  const stock = product.stock ?? 0;
   if (nextQty > stock) return lines;
+
+  const label = variant ? variantLabel(variant) : "";
+  const title = label ? `${product.title} (${label})` : product.title;
+  const price = variantUnitPrice(product, variant);
 
   let next: CartLine[];
   if (existing) {
     next = lines.map((line) =>
-      line.productId === product.id ? { ...line, qty: nextQty } : line,
+      lineKey(line.productId, line.variantId) ===
+      lineKey(product.id, variant?.id)
+        ? { ...line, qty: nextQty, price, title }
+        : line,
     );
   } else {
     next = [
       ...lines,
       {
         productId: product.id,
-        title: product.title,
+        variantId: variant?.id,
+        size: variant?.size,
+        color: variant?.color,
+        title,
         emoji: product.emoji,
         image: product.image,
-        price: product.price,
+        price,
         qty,
       },
     ];
@@ -77,9 +111,17 @@ export function addToCart(product: Product, qty = 1): CartLine[] {
   return next;
 }
 
-export function setCartQty(productId: number, qty: number): CartLine[] {
+export function setCartQty(
+  productId: number,
+  qty: number,
+  variantId?: number,
+): CartLine[] {
   const lines = readCart()
-    .map((line) => (line.productId === productId ? { ...line, qty } : line))
+    .map((line) =>
+      lineKey(line.productId, line.variantId) === lineKey(productId, variantId)
+        ? { ...line, qty }
+        : line,
+    )
     .filter((line) => line.qty > 0);
   writeCart(lines);
   return lines;
