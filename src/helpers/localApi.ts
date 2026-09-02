@@ -1,6 +1,7 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
+import { applyCoupon, normalizeCouponCode } from "@/helpers/coupons";
 import { nextStatuses } from "@/helpers/orders";
 import { makeAuthority, makeRefId } from "@/helpers/payments";
 import { averageRating, clampRating } from "@/helpers/reviews";
@@ -8,11 +9,19 @@ import { deliverOtpSms, shouldShowOtpHint } from "@/helpers/sms";
 import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
 import type { ShopRole } from "@/helpers/roles";
 import type { OrderItem, OrderStatus } from "@/models/order";
+import type { CouponType } from "@/models/coupon";
 import {
   ADMIN_PERMISSIONS,
+  clearCustomerOtpHint,
+  clearCustomerPendingOtp,
+  clearCustomerSession,
   clearPendingOtp,
   clearOtpHint,
   clearSession,
+  getCoupons,
+  getCustomerPendingOtp,
+  getCustomerSession,
+  getCustomers,
   getPendingOtp,
   getProducts,
   getOrders,
@@ -27,6 +36,11 @@ import {
   randomOtp,
   randomToken,
   recordLowStockAlerts,
+  saveCoupons,
+  saveCustomerOtpHint,
+  saveCustomerPendingOtp,
+  saveCustomerSession,
+  saveCustomers,
   saveOtpHint,
   saveOrders,
   saveOrderNotifications,
@@ -469,6 +483,34 @@ export async function handleLocalRequest(
       });
     }
 
+    const paymentMethod =
+      String(body.paymentMethod ?? "cod") === "online" ? "online" : "cod";
+
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+    let discount = 0;
+    let couponCode: string | undefined;
+    const rawCoupon = String(body.couponCode ?? "").trim();
+    if (rawCoupon) {
+      const code = normalizeCouponCode(rawCoupon);
+      const coupons = getCoupons();
+      const coupon = coupons.find((item) => item.code === code);
+      if (!coupon) {
+        throw fail(config, 422, { errors: { couponCode: "کد تخفیف پیدا نشد" } });
+      }
+      const applied = applyCoupon(coupon, subtotal);
+      if (!applied.ok) {
+        throw fail(config, 422, { errors: { couponCode: applied.message } });
+      }
+      discount = applied.discount;
+      couponCode = coupon.code;
+      const index = coupons.findIndex((item) => item.id === coupon.id);
+      coupons[index] = {
+        ...coupon,
+        usedCount: (coupon.usedCount ?? 0) + 1,
+      };
+      saveCoupons(coupons);
+    }
+
     const nextProducts = products.map((product) => {
       const taken = items.find((item) => item.productId === product.id);
       if (!taken) return product;
@@ -477,8 +519,12 @@ export async function handleLocalRequest(
     saveProducts(nextProducts);
     recordLowStockAlerts(nextProducts);
 
-    const paymentMethod =
-      String(body.paymentMethod ?? "cod") === "online" ? "online" : "cod";
+    const customerSession = getCustomerSession();
+    const customerId =
+      customerSession &&
+      customerSession.customer.phone === customerPhone
+        ? customerSession.customer.id
+        : undefined;
 
     const orders = getOrders();
     const order = {
@@ -486,11 +532,15 @@ export async function handleLocalRequest(
       customerName,
       customerPhone,
       items,
-      total: items.reduce((sum, item) => sum + item.price * item.qty, 0),
+      subtotal,
+      discount: discount || undefined,
+      couponCode,
+      total: Math.max(0, subtotal - discount),
       status: "pending" as OrderStatus,
       note: String(body.note ?? "").trim() || undefined,
       created_at: new Date().toISOString(),
       paymentMethod: paymentMethod as "online" | "cod",
+      customerId,
     };
     saveOrders([order, ...orders]);
     pushOrderNotification(order);
@@ -773,6 +823,187 @@ export async function handleLocalRequest(
     }));
     saveOrderNotifications(items);
     return ok(config, { notifications: items });
+  }
+
+  if (method === "POST" && path === "/shop/coupons/validate") {
+    const code = normalizeCouponCode(String(body.code ?? ""));
+    const subtotal = Number(body.subtotal ?? 0);
+    if (!code) {
+      throw fail(config, 422, { errors: { code: "کد را بنویس" } });
+    }
+    const coupon = getCoupons().find((item) => item.code === code);
+    if (!coupon) {
+      throw fail(config, 422, { errors: { code: "کد تخفیف پیدا نشد" } });
+    }
+    const applied = applyCoupon(coupon, subtotal);
+    if (!applied.ok) {
+      throw fail(config, 422, { errors: { code: applied.message } });
+    }
+    return ok(config, {
+      code: coupon.code,
+      type: coupon.type,
+      value: coupon.value,
+      discount: applied.discount,
+      total: applied.total,
+    });
+  }
+
+  if (method === "GET" && path === "/coupons") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { coupons: getCoupons() });
+  }
+
+  if (method === "POST" && path === "/coupons") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const code = normalizeCouponCode(String(body.code ?? ""));
+    const type = String(body.type ?? "percent") === "fixed" ? "fixed" : "percent";
+    const value = Number(body.value ?? 0);
+    if (!code || code.length < 3) {
+      throw fail(config, 422, { errors: { code: "کد کوتاه است" } });
+    }
+    if (getCoupons().some((item) => item.code === code)) {
+      throw fail(config, 422, { errors: { code: "این کد تکراری است" } });
+    }
+    if (type === "percent" && (value < 1 || value > 90)) {
+      throw fail(config, 422, { errors: { value: "درصد بین ۱ تا ۹۰ باشد" } });
+    }
+    if (type === "fixed" && value < 1000) {
+      throw fail(config, 422, { errors: { value: "مبلغ تخفیف کم است" } });
+    }
+    const coupons = getCoupons();
+    const coupon = {
+      id: nextId(coupons),
+      code,
+      type: type as CouponType,
+      value,
+      active: body.active === false ? false : true,
+      minOrder: Number(body.minOrder ?? 0) || undefined,
+      maxUses: Number(body.maxUses ?? 0) || undefined,
+      usedCount: 0,
+      created_at: new Date().toISOString(),
+    };
+    saveCoupons([coupon, ...coupons]);
+    return ok(config, { coupon }, 201);
+  }
+
+  const couponToggleMatch = path.match(/^\/coupons\/(\d+)\/toggle$/);
+  if (method === "POST" && couponToggleMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(couponToggleMatch[1]);
+    const coupons = getCoupons();
+    const index = coupons.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    coupons[index] = { ...coupons[index], active: !coupons[index].active };
+    saveCoupons(coupons);
+    return ok(config, { coupon: coupons[index] });
+  }
+
+  if (method === "POST" && path === "/shop/auth/register") {
+    const name = String(body.name ?? "").trim();
+    const phone = normalizeIranianPhone(String(body.phone ?? ""));
+    if (name.length < 2) {
+      throw fail(config, 422, { errors: { name: "نام را درست بنویس" } });
+    }
+    if (!iranianPhoneRegExp.test(phone)) {
+      throw fail(config, 422, { errors: { phone: "شماره درست نیست" } });
+    }
+    const customers = getCustomers();
+    if (customers.some((item) => item.phone === phone)) {
+      throw fail(config, 422, {
+        errors: { phone: "این شماره قبلا ثبت شده. وارد شو" },
+      });
+    }
+    const customer = {
+      id: nextId(customers),
+      name,
+      phone,
+      created_at: new Date().toISOString(),
+    };
+    saveCustomers([...customers, customer]);
+    const token = randomToken();
+    const code = randomOtp();
+    saveCustomerPendingOtp({ token, phone, code });
+    const delivery = await deliverOtpSms(phone, code);
+    const showHint = shouldShowOtpHint(delivery.sent);
+    if (showHint) saveCustomerOtpHint(code);
+    else clearCustomerOtpHint();
+    return ok(
+      config,
+      {
+        token,
+        debug_code: showHint ? code : undefined,
+        sms_sent: delivery.sent,
+      },
+      201,
+    );
+  }
+
+  if (method === "POST" && path === "/shop/auth/login") {
+    const phone = normalizeIranianPhone(String(body.phone ?? ""));
+    const customer = getCustomers().find((item) => item.phone === phone);
+    if (!customer) {
+      throw fail(config, 422, {
+        errors: { phone: "این شماره ثبت نشده. اول ثبت‌نام کن" },
+      });
+    }
+    const token = randomToken();
+    const code = randomOtp();
+    saveCustomerPendingOtp({ token, phone, code });
+    const delivery = await deliverOtpSms(phone, code);
+    const showHint = shouldShowOtpHint(delivery.sent);
+    if (showHint) saveCustomerOtpHint(code);
+    else clearCustomerOtpHint();
+    return ok(config, {
+      token,
+      debug_code: showHint ? code : undefined,
+      sms_sent: delivery.sent,
+    });
+  }
+
+  if (method === "POST" && path === "/shop/auth/verify") {
+    const token = String(body.token ?? "");
+    const code = String(body.code ?? "");
+    const pending = getCustomerPendingOtp();
+    if (!pending || pending.token !== token) {
+      throw fail(config, 422, { errors: { code: "نشست ورود منقضی شده" } });
+    }
+    if (pending.code !== code) {
+      throw fail(config, 422, { errors: { code: "کد درست نیست" } });
+    }
+    const customer = getCustomers().find((item) => item.phone === pending.phone);
+    if (!customer) {
+      throw fail(config, 422, { errors: { code: "مشتری پیدا نشد" } });
+    }
+    const sessionToken = randomToken();
+    saveCustomerSession({ token: sessionToken, customer });
+    clearCustomerPendingOtp();
+    clearCustomerOtpHint();
+    return ok(config, { customer, token: sessionToken });
+  }
+
+  if (method === "GET" && path === "/shop/auth/me") {
+    const session = getCustomerSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { customer: session.customer });
+  }
+
+  if (method === "POST" && path === "/shop/auth/logout") {
+    clearCustomerSession();
+    return ok(config, { status: "success" });
+  }
+
+  if (method === "GET" && path === "/shop/account/orders") {
+    const session = getCustomerSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const orders = getOrders().filter(
+      (item) =>
+        item.customerId === session.customer.id ||
+        item.customerPhone === session.customer.phone,
+    );
+    return ok(config, { orders });
   }
 
   if (method === "POST" && path === "/auth/logout") {
