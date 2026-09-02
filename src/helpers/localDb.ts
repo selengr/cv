@@ -4,12 +4,15 @@ import type Order from "@/models/order";
 import type Review from "@/models/review";
 import type Coupon from "@/models/coupon";
 import type Customer from "@/models/customer";
+import type Address from "@/models/address";
+import type ShippingMethod from "@/models/shipping";
+import { seedShippingMethods } from "@/helpers/shipping";
 import type { StockAlert } from "@/helpers/stockAlerts";
 import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "9";
+const DATA_VERSION = "10";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -18,6 +21,8 @@ const STOCK_ALERTS_KEY = "shopy_stock_alerts";
 const NOTIFICATIONS_KEY = "shopy_order_notifications";
 const COUPONS_KEY = "shopy_coupons";
 const CUSTOMERS_KEY = "shopy_customers";
+const ADDRESSES_KEY = "shopy_addresses";
+const SHIPPING_KEY = "shopy_shipping_methods";
 const CUSTOMER_SESSION_KEY = "shopy_customer_session";
 const CUSTOMER_OTP_KEY = "shopy_customer_otp";
 const SESSION_KEY = "shopy_session";
@@ -443,6 +448,8 @@ function ensureSeed() {
   writeJson(NOTIFICATIONS_KEY, []);
   writeJson(COUPONS_KEY, seedCoupons());
   writeJson(CUSTOMERS_KEY, []);
+  writeJson(ADDRESSES_KEY, []);
+  writeJson(SHIPPING_KEY, seedShippingMethods());
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
@@ -571,6 +578,30 @@ export function getCustomers(): Customer[] {
 
 export function saveCustomers(customers: Customer[]) {
   writeJson(CUSTOMERS_KEY, customers);
+}
+
+export function getAddresses(): Address[] {
+  ensureSeed();
+  return readJson<Address[]>(ADDRESSES_KEY, []);
+}
+
+export function saveAddresses(addresses: Address[]) {
+  writeJson(ADDRESSES_KEY, addresses);
+}
+
+export function getShippingMethods(): ShippingMethod[] {
+  ensureSeed();
+  const methods = readJson<ShippingMethod[] | null>(SHIPPING_KEY, null);
+  if (!methods || methods.length === 0) {
+    const seeded = seedShippingMethods();
+    writeJson(SHIPPING_KEY, seeded);
+    return seeded;
+  }
+  return methods;
+}
+
+export function saveShippingMethods(methods: ShippingMethod[]) {
+  writeJson(SHIPPING_KEY, methods);
 }
 
 export function getCustomerSession(): CustomerSession | null {

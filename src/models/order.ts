@@ -33,4 +33,16 @@ export default interface Order {
   discount?: number;
   subtotal?: number;
   customerId?: number;
+  shippingMethodId?: number;
+  shippingTitle?: string;
+  shippingFee?: number;
+  address?: {
+    label?: string;
+    recipientName: string;
+    phone: string;
+    province: string;
+    city: string;
+    street: string;
+    postalCode?: string;
+  };
 }
