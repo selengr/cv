@@ -8,6 +8,7 @@ import { GetSingleOrder } from "@/services/order";
 import LoadingBox from "@/components/shared/loadingBox";
 import { formatInvoiceDate, orderItemCount, statusLabel } from "@/helpers/orders";
 import { formatToman } from "@/helpers/catalog";
+import { formatAddressLine } from "@/helpers/shipping";
 
 export default function Invoice({
   params,
@@ -73,12 +74,30 @@ export default function Invoice({
             <p className="mt-1 text-sm" dir="ltr">
               {order.customerPhone}
             </p>
+            {order.address && (
+              <div className="mt-3 text-sm text-[#5c564d]">
+                <p className="text-xs text-[#6b6459]">آدرس تحویل</p>
+                <p className="mt-1">
+                  {order.address.recipientName} ·{" "}
+                  <span dir="ltr">{order.address.phone}</span>
+                </p>
+                <p className="mt-1">{formatAddressLine(order.address)}</p>
+              </div>
+            )}
           </div>
           <div className="sm:text-left">
             <p className="text-xs text-[#6b6459]">تعداد اقلام</p>
             <p className="mt-1">
               {orderItemCount(order.items).toLocaleString("fa-IR")} قلم
             </p>
+            {order.shippingTitle && (
+              <p className="mt-2 text-sm">
+                ارسال: {order.shippingTitle}
+                {order.shippingFee
+                  ? ` · ${formatToman(order.shippingFee)}`
+                  : " · رایگان"}
+              </p>
+            )}
             {order.refId && (
               <p className="mt-2 text-xs text-[#6b6459]" dir="ltr">
                 RefID {order.refId}
@@ -110,7 +129,30 @@ export default function Invoice({
           </tbody>
         </table>
 
-        <p className="mt-6 text-left font-display text-xl font-semibold">
+        <div className="mt-6 space-y-1 text-sm text-[#5c564d]">
+          {order.subtotal != null && (
+            <p className="flex justify-between gap-3">
+              <span>جمع کالا</span>
+              <span>{formatToman(order.subtotal)}</span>
+            </p>
+          )}
+          {order.discount ? (
+            <p className="flex justify-between gap-3">
+              <span>تخفیف{order.couponCode ? ` (${order.couponCode})` : ""}</span>
+              <span>−{formatToman(order.discount)}</span>
+            </p>
+          ) : null}
+          {order.shippingTitle && (
+            <p className="flex justify-between gap-3">
+              <span>ارسال ({order.shippingTitle})</span>
+              <span>
+                {!order.shippingFee ? "رایگان" : formatToman(order.shippingFee)}
+              </span>
+            </p>
+          )}
+        </div>
+
+        <p className="mt-4 text-left font-display text-xl font-semibold">
           جمع کل {formatToman(order.total)}
         </p>
 

@@ -12,6 +12,7 @@ import ProductThumb from "@/components/shared/productThumb";
 import { formatDay, nextStatuses, statusLabel } from "@/helpers/orders";
 import { paymentLabel } from "@/helpers/payments";
 import { formatToman } from "@/helpers/catalog";
+import { formatAddressLine } from "@/helpers/shipping";
 import type { OrderStatus } from "@/models/order";
 import ValidationError from "@/exceptions/validationError";
 
@@ -105,7 +106,33 @@ export default function OrderDetail({
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-left font-medium">{formatToman(order.total)}</p>
+          {(order.subtotal != null || order.shippingFee != null || order.discount) && (
+            <div className="mt-4 space-y-1 border-t border-[#14110e]/8 pt-3 text-sm text-[#5c564d]">
+              {order.subtotal != null && (
+                <p className="flex justify-between gap-3">
+                  <span>جمع کالا</span>
+                  <span>{formatToman(order.subtotal)}</span>
+                </p>
+              )}
+              {order.discount ? (
+                <p className="flex justify-between gap-3 text-emerald-800">
+                  <span>تخفیف</span>
+                  <span>−{formatToman(order.discount)}</span>
+                </p>
+              ) : null}
+              {order.shippingTitle && (
+                <p className="flex justify-between gap-3">
+                  <span>ارسال ({order.shippingTitle})</span>
+                  <span>
+                    {!order.shippingFee
+                      ? "رایگان"
+                      : formatToman(order.shippingFee)}
+                  </span>
+                </p>
+              )}
+            </div>
+          )}
+          <p className="mt-3 text-left font-medium">{formatToman(order.total)}</p>
         </div>
 
         <div className="space-y-4">
@@ -127,6 +154,23 @@ export default function OrderDetail({
                 تخفیف {order.couponCode}
                 {order.discount ? ` · −${order.discount.toLocaleString("fa-IR")} تومان` : ""}
               </p>
+            )}
+            {order.shippingTitle && (
+              <p className="mt-2 text-sm text-[#5c564d]">
+                ارسال: {order.shippingTitle}
+              </p>
+            )}
+            {order.address && (
+              <div className="mt-3 rounded-2xl bg-[#f4efe6] p-3 text-sm text-[#5c564d]">
+                <p className="font-medium text-[#14110e]">
+                  {order.address.label || "آدرس تحویل"}
+                </p>
+                <p className="mt-1">
+                  {order.address.recipientName} ·{" "}
+                  <span dir="ltr">{order.address.phone}</span>
+                </p>
+                <p className="mt-1">{formatAddressLine(order.address)}</p>
+              </div>
             )}
             {order.note && (
               <p className="mt-3 rounded-2xl bg-[#f4efe6] p-3 text-sm text-[#5c564d]">
