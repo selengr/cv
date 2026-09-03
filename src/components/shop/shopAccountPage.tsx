@@ -16,6 +16,7 @@ import {
   RegisterShopCustomer,
   VerifyShopCustomer,
 } from "@/services/shopAuth";
+import { RequestShopReturn } from "@/services/returns";
 import {
   CreateAddress,
   DeleteAddress,
@@ -25,6 +26,11 @@ import {
 import { formatToman } from "@/helpers/catalog";
 import { formatDay } from "@/helpers/orders";
 import { formatAddressLine } from "@/helpers/shipping";
+import {
+  canRequestReturn,
+  returnStatusClass,
+  returnStatusLabel,
+} from "@/helpers/returns";
 import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import { readCustomerOtpHint } from "@/helpers/localDb";
 import ValidationError from "@/exceptions/validationError";
@@ -37,10 +43,12 @@ export default function ShopAccountPage() {
     GetShopCustomerMe,
     { shouldRetryOnError: false },
   );
-  const { data: orders, mutate: mutateOrders } = useSWR(
+  const { data: accountData, mutate: mutateOrders } = useSWR(
     customer ? "shop/account/orders" : null,
     GetMyShopOrders,
   );
+  const orders = accountData?.orders;
+  const returns = accountData?.returns ?? [];
   const { data: addresses, mutate: mutateAddresses } = useSWR(
     customer ? "shop/account/addresses" : null,
     GetMyAddresses,
@@ -61,6 +69,9 @@ export default function ShopAccountPage() {
   const [street, setStreet] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [addrBusy, setAddrBusy] = useState(false);
+  const [returnOrderId, setReturnOrderId] = useState<number | null>(null);
+  const [returnReason, setReturnReason] = useState("");
+  const [returnBusy, setReturnBusy] = useState(false);
 
   const startAuth = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -128,6 +139,36 @@ export default function ShopAccountPage() {
     await LogoutShopCustomer();
     await mutate(undefined, { revalidate: false });
     toast.info("خارج شدی");
+  };
+
+  const submitReturn = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!returnOrderId) return;
+    if (returnReason.trim().length < 5) {
+      toast.error("دلیل مرجوعی را کامل‌تر بنویس");
+      return;
+    }
+    setReturnBusy(true);
+    try {
+      await RequestShopReturn({
+        orderId: returnOrderId,
+        reason: returnReason.trim(),
+      });
+      setReturnOrderId(null);
+      setReturnReason("");
+      await mutateOrders();
+      toast.success("درخواست مرجوعی ثبت شد");
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        const first = Object.values(err.messages)[0];
+        const message = Array.isArray(first) ? first[0] : first;
+        toast.error(String(message ?? "ثبت نشد"));
+        return;
+      }
+      toast.error("ثبت نشد");
+    } finally {
+      setReturnBusy(false);
+    }
   };
 
   const addAddress = async (event: React.FormEvent) => {
