@@ -6,6 +6,7 @@ import type Coupon from "@/models/coupon";
 import type Customer from "@/models/customer";
 import type Address from "@/models/address";
 import type ShippingMethod from "@/models/shipping";
+import type ReturnRequest from "@/models/returnRequest";
 import { seedShippingMethods } from "@/helpers/shipping";
 import { productStock } from "@/helpers/variants";
 import type { StockAlert } from "@/helpers/stockAlerts";
@@ -13,7 +14,7 @@ import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "11";
+const DATA_VERSION = "12";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -24,6 +25,7 @@ const COUPONS_KEY = "shopy_coupons";
 const CUSTOMERS_KEY = "shopy_customers";
 const ADDRESSES_KEY = "shopy_addresses";
 const SHIPPING_KEY = "shopy_shipping_methods";
+const RETURNS_KEY = "shopy_returns";
 const CUSTOMER_SESSION_KEY = "shopy_customer_session";
 const CUSTOMER_OTP_KEY = "shopy_customer_otp";
 const SESSION_KEY = "shopy_session";
@@ -447,6 +449,22 @@ function seedCoupons(): Coupon[] {
   ];
 }
 
+function seedReturns(): ReturnRequest[] {
+  return [
+    {
+      id: 1,
+      orderId: 1045,
+      customerName: "رضا کاظمی",
+      customerPhone: "09120001111",
+      reason: "رنگ با عکس فرق داشت، می‌خوام عوض کنم",
+      status: "pending",
+      amount: 2450000,
+      paymentMethod: "cod",
+      created_at: daysAgo(0, 14),
+    },
+  ];
+}
+
 export function getUsers(): StoredUser[] {
   ensureSeed();
   const users = readJson<StoredUser[]>(USERS_KEY, []);
@@ -485,6 +503,7 @@ function ensureSeed() {
   writeJson(CUSTOMERS_KEY, []);
   writeJson(ADDRESSES_KEY, []);
   writeJson(SHIPPING_KEY, seedShippingMethods());
+  writeJson(RETURNS_KEY, seedReturns());
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
