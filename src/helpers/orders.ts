@@ -5,6 +5,7 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
   { value: "paid", label: "پرداخت‌شده" },
   { value: "packed", label: "بسته‌بندی" },
   { value: "shipped", label: "ارسال‌شده" },
+  { value: "returned", label: "مرجوع" },
   { value: "cancelled", label: "لغو" },
 ];
 
@@ -22,6 +23,8 @@ export function statusClass(status: OrderStatus) {
       return "bg-sky-100 text-sky-800";
     case "shipped":
       return "bg-emerald-100 text-emerald-800";
+    case "returned":
+      return "bg-violet-100 text-violet-800";
     case "cancelled":
       return "bg-red-100 text-red-800";
   }

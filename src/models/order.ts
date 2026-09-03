@@ -3,6 +3,7 @@ export type OrderStatus =
   | "paid"
   | "packed"
   | "shipped"
+  | "returned"
   | "cancelled";
 
 export interface OrderItem {
