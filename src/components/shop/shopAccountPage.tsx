@@ -378,27 +378,82 @@ export default function ShopAccountPage() {
               </div>
             ) : (
               <ul className="mt-4 space-y-3">
-                {orders.map((order) => (
-                  <li
-                    key={order.id}
-                    className="flex items-center justify-between gap-3 rounded-3xl border border-[#14110e]/8 bg-white/85 px-4 py-3 shadow-sm"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        #{order.id.toLocaleString("fa-IR")} ·{" "}
-                        {formatToman(order.total)}
-                      </p>
-                      <p className="text-xs text-[#6b6459]">
-                        {formatDay(order.created_at)}
-                        {order.shippingTitle
-                          ? ` · ${order.shippingTitle}`
-                          : ""}
-                        {order.couponCode ? ` · ${order.couponCode}` : ""}
-                      </p>
-                    </div>
-                    <OrderStatusBadge status={order.status} />
-                  </li>
-                ))}
+                {orders.map((order) => {
+                  const related = returns.find(
+                    (item) => item.orderId === order.id,
+                  );
+                  return (
+                    <li
+                      key={order.id}
+                      className="rounded-3xl border border-[#14110e]/8 bg-white/85 px-4 py-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium">
+                            #{order.id.toLocaleString("fa-IR")} ·{" "}
+                            {formatToman(order.total)}
+                          </p>
+                          <p className="text-xs text-[#6b6459]">
+                            {formatDay(order.created_at)}
+                            {order.shippingTitle
+                              ? ` · ${order.shippingTitle}`
+                              : ""}
+                            {order.couponCode ? ` · ${order.couponCode}` : ""}
+                          </p>
+                        </div>
+                        <OrderStatusBadge status={order.status} />
+                      </div>
+                      {related && (
+                        <p
+                          className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs ${returnStatusClass(related.status)}`}
+                        >
+                          مرجوعی: {returnStatusLabel(related.status)}
+                        </p>
+                      )}
+                      {canRequestReturn(order) && !related && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReturnOrderId(order.id);
+                            setReturnReason("");
+                          }}
+                          className="mt-3 rounded-full px-3 py-1.5 text-xs ring-1 ring-[#14110e]/15"
+                        >
+                          درخواست مرجوعی
+                        </button>
+                      )}
+                      {returnOrderId === order.id && (
+                        <form onSubmit={submitReturn} className="mt-3 space-y-2">
+                          <textarea
+                            value={returnReason}
+                            onChange={(event) =>
+                              setReturnReason(event.target.value)
+                            }
+                            rows={2}
+                            placeholder="چرا می‌خوای مرجوع کنی؟"
+                            className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2 text-sm"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={returnBusy}
+                              className="rounded-full bg-[#1f4a45] px-3 py-1.5 text-xs text-white disabled:opacity-50"
+                            >
+                              {returnBusy ? "..." : "ثبت درخواست"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReturnOrderId(null)}
+                              className="rounded-full px-3 py-1.5 text-xs ring-1 ring-[#14110e]/15"
+                            >
+                              انصراف
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

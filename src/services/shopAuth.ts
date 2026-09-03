@@ -1,6 +1,7 @@
 import callApi from "@/helpers/callApi";
 import type Customer from "@/models/customer";
 import type Order from "@/models/order";
+import type ReturnRequest from "@/models/returnRequest";
 
 export async function RegisterShopCustomer(values: {
   name: string;
@@ -44,6 +45,6 @@ export async function GetMyShopOrders() {
   const res = await callApi().get("/shop/account/orders");
   return {
     orders: (res.data?.orders ?? []) as Order[],
-    returns: (res.data?.returns ?? []) as import("@/models/returnRequest").default[],
+    returns: (res.data?.returns ?? []) as ReturnRequest[],
   };
 }

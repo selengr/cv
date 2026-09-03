@@ -21,6 +21,7 @@ I started this around 2022 on Next.js 12, left it alone for a long time, then dr
 - customer accounts at `/shop/account` (separate from seller login)
 - shipping methods (`/panel/shipping`) plus an address book on checkout / account
 - size / color variants on products (pick them on the product page; edit in admin)
+- returns / refunds (`/panel/returns`, request from `/shop/account` on shipped orders)
 
 Default mode needs no backend: `NEXT_PUBLIC_LOCAL_AUTH=true`. Sign in as `09121111111`, grab the code from the toast / next screen (it stays up a bit longer so you can copy it), and you're in. Shop is `/shop`.
 
@@ -63,4 +64,4 @@ Open http://localhost:3000
 
 ## Later
 
-Nothing urgent. If I come back to this I'll probably poke at returns / refunds or a proper image CDN — not sure yet.
+Maybe a proper image CDN next, or seller notes on the packing slip. Nothing blocking right now.
