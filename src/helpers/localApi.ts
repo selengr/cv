@@ -1462,6 +1462,90 @@ export async function handleLocalRequest(
     return ok(config, { address: updated });
   }
 
+  if (method === "GET" && path === "/returns") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { returns: getReturns() });
+  }
+
+  const returnResolveMatch = path.match(/^\/returns\/(\d+)\/(approve|reject)$/);
+  if (method === "POST" && returnResolveMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(returnResolveMatch[1]);
+    const action = returnResolveMatch[2];
+    const returns = getReturns();
+    const index = returns.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const current = returns[index];
+    if (current.status !== "pending") {
+      throw fail(config, 422, {
+        errors: { status: "این درخواست قبلا رسیدگی شده" },
+      });
+    }
+    const sellerNote = String(body.sellerNote ?? "").trim() || undefined;
+    const now = new Date().toISOString();
+
+    if (action === "reject") {
+      returns[index] = {
+        ...current,
+        status: "rejected",
+        sellerNote,
+        resolved_at: now,
+      };
+      saveReturns(returns);
+      return ok(config, { return: returns[index] });
+    }
+
+    const orders = getOrders();
+    const orderIndex = orders.findIndex((item) => item.id === current.orderId);
+    if (orderIndex < 0) {
+      throw fail(config, 404, { message: "order not found" });
+    }
+    const order = orders[orderIndex];
+    if (order.status !== "shipped") {
+      throw fail(config, 422, {
+        errors: { status: "وضعیت سفارش برای مرجوعی مناسب نیست" },
+      });
+    }
+
+    const products = getProducts().map((product) => {
+      const moves = order.items.filter((item) => item.productId === product.id);
+      if (moves.length === 0) return product;
+      if (hasVariants(product) && product.variants) {
+        const variants = product.variants.map((variant) => {
+          const qty = moves
+            .filter((item) => item.variantId === variant.id)
+            .reduce((sum, item) => sum + item.qty, 0);
+          if (!qty) return variant;
+          return { ...variant, stock: variant.stock + qty };
+        });
+        return {
+          ...product,
+          variants,
+          stock: variants.reduce((sum, item) => sum + item.stock, 0),
+        };
+      }
+      const qty = moves.reduce((sum, item) => sum + item.qty, 0);
+      return { ...product, stock: (product.stock ?? 0) + qty };
+    });
+    saveProducts(products);
+
+    orders[orderIndex] = { ...order, status: "returned" };
+    saveOrders(orders);
+
+    const nextStatus: ReturnStatus =
+      order.paymentMethod === "online" ? "refunded" : "approved";
+    returns[index] = {
+      ...current,
+      status: nextStatus,
+      sellerNote,
+      resolved_at: now,
+    };
+    saveReturns(returns);
+    return ok(config, { return: returns[index], order: orders[orderIndex] });
+  }
+
   if (method === "POST" && path === "/auth/logout") {
     clearSession();
     return ok(config, { status: "success" });

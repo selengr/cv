@@ -42,5 +42,8 @@ export async function LogoutShopCustomer() {
 
 export async function GetMyShopOrders() {
   const res = await callApi().get("/shop/account/orders");
-  return (res.data?.orders ?? []) as Order[];
+  return {
+    orders: (res.data?.orders ?? []) as Order[],
+    returns: (res.data?.returns ?? []) as import("@/models/returnRequest").default[],
+  };
 }
