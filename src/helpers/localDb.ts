@@ -658,6 +658,15 @@ export function saveShippingMethods(methods: ShippingMethod[]) {
   writeJson(SHIPPING_KEY, methods);
 }
 
+export function getReturns(): ReturnRequest[] {
+  ensureSeed();
+  return readJson<ReturnRequest[]>(RETURNS_KEY, []);
+}
+
+export function saveReturns(items: ReturnRequest[]) {
+  writeJson(RETURNS_KEY, items);
+}
+
 export function getCustomerSession(): CustomerSession | null {
   return readJson<CustomerSession | null>(CUSTOMER_SESSION_KEY, null);
 }
