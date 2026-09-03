@@ -1202,7 +1202,67 @@ export async function handleLocalRequest(
         item.customerId === session.customer.id ||
         item.customerPhone === session.customer.phone,
     );
-    return ok(config, { orders });
+    const returns = getReturns().filter(
+      (item) =>
+        item.customerId === session.customer.id ||
+        item.customerPhone === session.customer.phone,
+    );
+    return ok(config, { orders, returns });
+  }
+
+  if (method === "POST" && path === "/shop/account/returns") {
+    const session = getCustomerSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const orderId = Number(body.orderId);
+    const reason = String(body.reason ?? "").trim();
+    if (!Number.isFinite(orderId) || orderId < 1) {
+      throw fail(config, 422, { errors: { orderId: "سفارش درست نیست" } });
+    }
+    if (reason.length < 5) {
+      throw fail(config, 422, {
+        errors: { reason: "دلیل مرجوعی را کامل‌تر بنویس" },
+      });
+    }
+    const order = getOrders().find((item) => item.id === orderId);
+    if (
+      !order ||
+      (order.customerId !== session.customer.id &&
+        order.customerPhone !== session.customer.phone)
+    ) {
+      throw fail(config, 404, { message: "not found" });
+    }
+    if (!canRequestReturn(order)) {
+      throw fail(config, 422, {
+        errors: { orderId: "فقط سفارش ارسال‌شده را می‌شود مرجوع کرد" },
+      });
+    }
+    const existing = getReturns().find(
+      (item) =>
+        item.orderId === orderId &&
+        (item.status === "pending" ||
+          item.status === "approved" ||
+          item.status === "refunded"),
+    );
+    if (existing) {
+      throw fail(config, 422, {
+        errors: { orderId: "برای این سفارش قبلا درخواست مرجوعی ثبت شده" },
+      });
+    }
+    const returns = getReturns();
+    const request = {
+      id: nextId(returns),
+      orderId: order.id,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      customerId: session.customer.id,
+      reason,
+      status: "pending" as ReturnStatus,
+      amount: order.total,
+      paymentMethod: order.paymentMethod,
+      created_at: new Date().toISOString(),
+    };
+    saveReturns([request, ...returns]);
+    return ok(config, { return: request }, 201);
   }
 
   if (method === "GET" && path === "/shop/shipping-methods") {
