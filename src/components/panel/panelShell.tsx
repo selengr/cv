@@ -18,6 +18,7 @@ const links = [
   { href: "/panel/orders", label: "سفارش‌ها", exact: false },
   { href: "/panel/products", label: "محصولات", exact: false },
   { href: "/panel/notifications", label: "اعلان‌ها", exact: false },
+  { href: "/panel/settings", label: "تنظیمات", exact: false },
 ];
 
 export default function PanelShell({ children }: { children: React.ReactNode }) {

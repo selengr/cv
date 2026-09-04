@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { GetSingleOrder } from "@/services/order";
+import { GetShopSettingsPublic } from "@/services/settings";
 import LoadingBox from "@/components/shared/loadingBox";
 import { formatInvoiceDate, orderItemCount, statusLabel } from "@/helpers/orders";
 import { formatToman } from "@/helpers/catalog";
 import { formatAddressLine } from "@/helpers/shipping";
+import { defaultShopSettings } from "@/helpers/shopSettings";
 
 export default function Invoice({
   params,
@@ -21,7 +23,11 @@ export default function Invoice({
     { url: `/orders/${orderId}/invoice`, orderId: Number(orderId) },
     GetSingleOrder,
   );
+  const { data: settingsData } = useSWR("shop/settings", GetShopSettingsPublic, {
+    revalidateOnFocus: false,
+  });
   const order = data?.order;
+  const settings = settingsData ?? defaultShopSettings();
 
   if (isLoading) return <LoadingBox />;
   if (error || !order) {
@@ -57,8 +63,16 @@ export default function Invoice({
       <article className="invoice-sheet mx-auto max-w-3xl rounded-3xl border border-[#14110e]/10 bg-white p-6 sm:p-10">
         <header className="flex items-start justify-between gap-4 border-b border-[#14110e]/10 pb-6">
           <div>
-            <p className="font-display text-2xl font-semibold">Shopy</p>
+            <p className="font-display text-2xl font-semibold">{settings.name}</p>
             <p className="mt-1 text-sm text-[#6b6459]">فاکتور فروش</p>
+            {settings.phone && (
+              <p className="mt-1 text-xs text-[#6b6459]" dir="ltr">
+                {settings.phone}
+              </p>
+            )}
+            {settings.address && (
+              <p className="mt-1 text-xs text-[#6b6459]">{settings.address}</p>
+            )}
           </div>
           <div className="text-left text-sm">
             <p>شماره {order.id.toLocaleString("fa-IR")}</p>
@@ -163,7 +177,8 @@ export default function Invoice({
         )}
 
         <p className="mt-10 text-xs text-[#6b6459]">
-          این فاکتور از پنل Shopy چاپ شده. برای بایگانی همان «چاپ» مرورگر کافی است.
+          {settings.invoiceFooter ||
+            `این فاکتور از پنل ${settings.name} چاپ شده. برای بایگانی همان «چاپ» مرورگر کافی است.`}
         </p>
       </article>
     </div>
