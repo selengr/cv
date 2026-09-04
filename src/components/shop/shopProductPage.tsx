@@ -28,7 +28,8 @@ import {
   readLocale,
   subscribeLocale,
 } from "@/helpers/locale";
-import { categoryLabel, formatToman } from "@/helpers/catalog";
+import { categoryLabel } from "@/helpers/catalog";
+import ProductPrice from "@/components/shared/productPrice";
 import { formatStars } from "@/helpers/reviews";
 import { formatDay } from "@/helpers/orders";
 import {
@@ -163,9 +164,15 @@ export default function ShopProductPage({
           <p className="mt-2 text-sm text-[#5c564d]">
             {localizedBody(product, locale)}
           </p>
-          <p className="mt-4 font-display text-2xl font-semibold">
-            {formatToman(price)}
-          </p>
+          <div className="mt-4">
+            <ProductPrice
+              price={price}
+              compareAtPrice={
+                selected?.price != null ? undefined : product.compareAtPrice
+              }
+              size="lg"
+            />
+          </div>
           <p className="mt-2 text-sm text-[#6b6459]">
             {variantsOn && !selected
               ? `${productStock(product).toLocaleString("fa-IR")} عدد در کل`
@@ -368,7 +375,10 @@ export default function ShopProductPage({
                   {localizedTitle(item, locale)}
                 </p>
                 <p className="mt-1 text-xs text-[#6b6459]">
-                  {formatToman(item.price)}
+                  <ProductPrice
+                    price={item.price}
+                    compareAtPrice={item.compareAtPrice}
+                  />
                 </p>
               </Link>
             ))}

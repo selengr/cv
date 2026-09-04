@@ -16,6 +16,7 @@ import { averageRating, clampRating } from "@/helpers/reviews";
 import { deliverOtpSms, shouldShowOtpHint } from "@/helpers/sms";
 import { permissionsForRole, roleFromPermissions } from "@/helpers/roles";
 import type { ShopRole } from "@/helpers/roles";
+import type Product from "@/models/product";
 import type { OrderItem, OrderStatus } from "@/models/order";
 import type { CouponType } from "@/models/coupon";
 import type Address from "@/models/address";
@@ -124,6 +125,54 @@ function fail(
       config,
     },
   );
+}
+
+function resolveCompareAtPrice(
+  raw: unknown,
+  price: number,
+  config: InternalAxiosRequestConfig,
+  allowClear = false,
+): number | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === "" || raw === null) {
+    if (allowClear) return undefined;
+    return undefined;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    if (allowClear) return undefined;
+    return undefined;
+  }
+  if (value <= price) {
+    throw fail(config, 422, {
+      errors: { compareAtPrice: "قیمت قبلی باید از قیمت فروش بیشتر باشد" },
+    });
+  }
+  return value;
+}
+
+/** Put sold units back on products / variants (cancel or return). */
+function restoreOrderStock(items: OrderItem[], products: Product[]): Product[] {
+  return products.map((product) => {
+    const moves = items.filter((item) => item.productId === product.id);
+    if (moves.length === 0) return product;
+    if (hasVariants(product) && product.variants) {
+      const variants = product.variants.map((variant) => {
+        const qty = moves
+          .filter((item) => item.variantId === variant.id)
+          .reduce((sum, item) => sum + item.qty, 0);
+        if (!qty) return variant;
+        return { ...variant, stock: variant.stock + qty };
+      });
+      return {
+        ...product,
+        variants,
+        stock: variants.reduce((sum, item) => sum + item.stock, 0),
+      };
+    }
+    const qty = moves.reduce((sum, item) => sum + item.qty, 0);
+    return { ...product, stock: (product.stock ?? 0) + qty };
+  });
 }
 
 export async function handleLocalRequest(
@@ -322,6 +371,13 @@ export async function handleLocalRequest(
     const stock = variants
       ? variants.reduce((sum, item) => sum + item.stock, 0)
       : Number(body.stock ?? 1);
+    const price = Number(body.price ?? 0);
+    const compareAtPrice = resolveCompareAtPrice(
+      body.compareAtPrice,
+      price,
+      config,
+      true,
+    );
     const product = {
       id: nextId(products),
       title: String(body.title ?? ""),
@@ -329,7 +385,8 @@ export async function handleLocalRequest(
       category: String(body.category ?? body.category_id ?? ""),
       body: String(body.body ?? body.description ?? ""),
       body_en: String(body.body_en ?? "").trim() || undefined,
-      price: Number(body.price ?? 0),
+      price,
+      compareAtPrice,
       user_id: session.user.id,
       created_at: new Date().toISOString(),
       stock,
@@ -357,6 +414,11 @@ export async function handleLocalRequest(
     const stock = variants
       ? variants.reduce((sum, item) => sum + item.stock, 0)
       : Number(body.stock ?? products[index].stock ?? 0);
+    const price = Number(body.price ?? products[index].price);
+    const compareAtPrice =
+      body.compareAtPrice !== undefined
+        ? resolveCompareAtPrice(body.compareAtPrice, price, config, true)
+        : products[index].compareAtPrice;
     products[index] = {
       ...products[index],
       title: String(body.title ?? products[index].title),
@@ -370,7 +432,8 @@ export async function handleLocalRequest(
         body.body_en !== undefined
           ? String(body.body_en).trim() || undefined
           : products[index].body_en,
-      price: Number(body.price ?? products[index].price),
+      price,
+      compareAtPrice,
       stock,
       emoji: String(body.emoji ?? products[index].emoji ?? "📦"),
       image: String(body.image ?? products[index].image ?? "").trim() || undefined,
@@ -978,11 +1041,7 @@ export async function handleLocalRequest(
     }
 
     if (next === "cancelled") {
-      const products = getProducts().map((product) => {
-        const restored = current.items.find((item) => item.productId === product.id);
-        if (!restored) return product;
-        return { ...product, stock: (product.stock ?? 0) + restored.qty };
-      });
+      const products = restoreOrderStock(current.items, getProducts());
       saveProducts(products);
     }
 
@@ -1561,26 +1620,7 @@ export async function handleLocalRequest(
       });
     }
 
-    const products = getProducts().map((product) => {
-      const moves = order.items.filter((item) => item.productId === product.id);
-      if (moves.length === 0) return product;
-      if (hasVariants(product) && product.variants) {
-        const variants = product.variants.map((variant) => {
-          const qty = moves
-            .filter((item) => item.variantId === variant.id)
-            .reduce((sum, item) => sum + item.qty, 0);
-          if (!qty) return variant;
-          return { ...variant, stock: variant.stock + qty };
-        });
-        return {
-          ...product,
-          variants,
-          stock: variants.reduce((sum, item) => sum + item.stock, 0),
-        };
-      }
-      const qty = moves.reduce((sum, item) => sum + item.qty, 0);
-      return { ...product, stock: (product.stock ?? 0) + qty };
-    });
+    const products = restoreOrderStock(order.items, getProducts());
     saveProducts(products);
 
     orders[orderIndex] = { ...order, status: "returned" };

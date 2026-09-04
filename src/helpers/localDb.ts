@@ -16,7 +16,7 @@ import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "16";
+const DATA_VERSION = "17";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -128,6 +128,7 @@ function seedProducts(): Product[] {
       body: "کیف چرم طبیعی برای استفاده روزانه",
       body_en: "Natural leather bag for daily use",
       price: 2450000,
+      compareAtPrice: 2890000,
       user_id: 1,
       created_at: new Date().toISOString(),
       stock: 3,
@@ -146,6 +147,7 @@ function seedProducts(): Product[] {
       body: "تیشرت ساده نخی، چند رنگ",
       body_en: "Simple cotton tee in several colors",
       price: 320000,
+      compareAtPrice: 420000,
       user_id: 1,
       created_at: new Date().toISOString(),
       stock: 25,

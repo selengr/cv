@@ -24,6 +24,7 @@ const FormikCreateProductForm = withFormik<
     title_en: "",
     category_id: "",
     price: 0,
+    compareAtPrice: "",
     description: "",
     body_en: "",
     stock: 1,
@@ -37,6 +38,14 @@ const FormikCreateProductForm = withFormik<
     title_en: yup.string().max(255),
     category_id: yup.string().required("دسته‌بندی الزامی است"),
     price: yup.number().min(0),
+    compareAtPrice: yup
+      .mixed()
+      .test("compare", "قیمت قبلی باید از قیمت فروش بیشتر باشد", function (value) {
+        if (value === "" || value === null || value === undefined) return true;
+        const compare = Number(value);
+        if (!Number.isFinite(compare) || compare <= 0) return true;
+        return compare > Number(this.parent.price);
+      }),
     description: yup.string().required("توضیحات الزامی است").min(4).max(6000),
     body_en: yup.string().max(6000),
     stock: yup.number().min(0).required("موجودی الزامی است"),

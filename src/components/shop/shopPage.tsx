@@ -13,6 +13,7 @@ import { GetShopProducts, CreateShopOrder } from "@/services/shop";
 import { ValidateShopCoupon } from "@/services/coupon";
 import { GetShopCustomerMe } from "@/services/shopAuth";
 import { CATEGORIES, categoryLabel, formatToman } from "@/helpers/catalog";
+import ProductPrice from "@/components/shared/productPrice";
 import {
   addToCart,
   cartCount,
@@ -86,6 +87,7 @@ export default function ShopPage() {
   const [street, setStreet] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [saveAddress, setSaveAddress] = useState(false);
+  const [orderNote, setOrderNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [placedId, setPlacedId] = useState<number | null>(null);
 
@@ -243,6 +245,7 @@ export default function ShopPage() {
         addressId: payloadAddressId,
         address: payloadAddress,
         saveAddress: Boolean(customer && saveAddress && payloadAddress),
+        note: orderNote.trim() || undefined,
         items: lines.map((line) => ({
           productId: line.productId,
           qty: line.qty,
@@ -252,6 +255,7 @@ export default function ShopPage() {
       clearCart();
       setAppliedCoupon(null);
       setCouponInput("");
+      setOrderNote("");
       setPlacedId(order.id);
       await mutate();
       if (customer) await mutateAddresses();
@@ -375,7 +379,10 @@ export default function ShopPage() {
                           </h3>
                           <div className="mt-auto flex items-center justify-between pt-3">
                             <p className="text-sm font-medium">
-                              {formatToman(product.price)}
+                              <ProductPrice
+                                price={product.price}
+                                compareAtPrice={product.compareAtPrice}
+                              />
                             </p>
                             <button
                               type="button"
@@ -432,7 +439,10 @@ export default function ShopPage() {
                       </p>
                     )}
                     <div className="mt-auto flex items-center justify-between pt-4">
-                      <p className="text-sm font-medium">{formatToman(product.price)}</p>
+                      <ProductPrice
+                        price={product.price}
+                        compareAtPrice={product.compareAtPrice}
+                      />
                       <span
                         className={`text-xs ${
                           stock < 1 ? "font-medium text-red-700" : "text-[#6b6459]"
@@ -773,6 +783,13 @@ export default function ShopPage() {
                 </label>
               ))}
             </div>
+            <textarea
+              value={orderNote}
+              onChange={(event) => setOrderNote(event.target.value)}
+              placeholder="یادداشت سفارش (اختیاری)"
+              rows={2}
+              className="w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
+            />
             <button
               type="submit"
               disabled={saving || lines.length === 0}

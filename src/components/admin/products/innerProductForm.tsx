@@ -36,7 +36,17 @@ export default function InnerProductForm(props: ProductFormProps) {
           />
         </div>
         <div className="sm:col-span-2">
-          <Input name="price" type="number" label="قیمت (تومان)" />
+          <Input name="price" type="number" label="قیمت فروش (تومان)" />
+        </div>
+        <div className="sm:col-span-2">
+          <Input
+            name="compareAtPrice"
+            type="number"
+            label="قیمت قبلی (اختیاری)"
+          />
+          <p className="mt-1 text-xs text-[#6b6459]">
+            اگر بیشتر از قیمت فروش باشد، در فروشگاه خط می‌خورد
+          </p>
         </div>
         <div className="sm:col-span-1">
           <Input

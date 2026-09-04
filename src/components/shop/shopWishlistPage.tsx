@@ -10,7 +10,7 @@ import EmptyList from "@/components/shared/emptyList";
 import LoadingBox from "@/components/shared/loadingBox";
 import { GetShopProducts } from "@/services/shop";
 import { addToCart, cartCount, readCart, subscribeCart } from "@/helpers/cart";
-import { formatToman } from "@/helpers/catalog";
+import ProductPrice from "@/components/shared/productPrice";
 import {
   hasVariants,
   productStock,
@@ -78,7 +78,12 @@ export default function ShopWishlistPage() {
               <h2 className="font-display mt-3 text-lg font-semibold">
                 <Link href={`/shop/products/${item.productId}`}>{item.title}</Link>
               </h2>
-              <p className="mt-1 text-sm">{formatToman(item.price)}</p>
+              <div className="mt-1">
+                <ProductPrice
+                  price={item.product?.price ?? item.price}
+                  compareAtPrice={item.product?.compareAtPrice}
+                />
+              </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {item.needsOptions ? (
                   <Link

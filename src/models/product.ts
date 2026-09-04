@@ -13,6 +13,8 @@ export default interface Product {
   category?: string;
   body: string;
   price: number;
+  /** list / was price — display-only when higher than price */
+  compareAtPrice?: number;
   user_id: number;
   created_at: string;
   stock?: number;

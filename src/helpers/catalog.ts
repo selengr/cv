@@ -13,6 +13,23 @@ export function formatToman(price: number) {
   return `${Number(price || 0).toLocaleString("fa-IR")} تومان`;
 }
 
+export function hasSale(product: {
+  price: number;
+  compareAtPrice?: number;
+}) {
+  const compare = Number(product.compareAtPrice ?? 0);
+  return compare > product.price && product.price >= 0;
+}
+
+export function salePercent(product: {
+  price: number;
+  compareAtPrice?: number;
+}) {
+  if (!hasSale(product)) return 0;
+  const compare = Number(product.compareAtPrice);
+  return Math.round(((compare - product.price) / compare) * 100);
+}
+
 export const categorySelectOptions = [
   { label: "لطفا یکی از دسته‌ها را انتخاب کنید", value: "" },
   ...CATEGORIES.map((item) => ({ label: item.label, value: item.value })),

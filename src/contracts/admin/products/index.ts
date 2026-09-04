@@ -13,6 +13,7 @@ export interface CreateProductInterface {
   title_en: string;
   category_id: string;
   price: number;
+  compareAtPrice: number | "";
   description: string;
   body_en: string;
   stock: number;

@@ -25,6 +25,7 @@ I started this around 2022 on Next.js 12, left it alone for a long time, then dr
 - packing slips with seller packing notes (`/panel/orders/[id]/packing`)
 - shop settings (`/panel/settings`) — name, contact, invoice footer
 - featured products — mark them in admin; they show up as «پیشنهادها» on `/shop`
+- sale / compare-at prices on products (strikethrough «قبل» price in the shop)
 - about / contact pages from shop settings
 - order lifecycle through delivered; SEO basics (`robots`, `sitemap`, 404)
 
@@ -32,8 +33,8 @@ Default mode needs no backend: `NEXT_PUBLIC_LOCAL_AUTH=true`. Sign in as `091211
 
 ### Quick demo walk
 
-1. Open `/shop` — featured section, then browse. «شال پاییزه» is sold out on purpose.
-2. Add something to the cart (variant products open the product page). Try coupon `WELCOME10` or `SAVE50K`.
+1. Open `/shop` — featured section, then browse. تیشرت and کیف have sale prices. «شال پاییزه» is sold out on purpose.
+2. Add something to the cart (variant products open the product page). Try coupon `WELCOME10` or `SAVE50K`. Optional checkout note goes to the seller.
 3. Checkout COD → you land on an order receipt. Track with the same phone, or try sample **1048** / `09123334444`.
 4. Seller: `/auth/login` as `09121111111`, then `/panel` for orders / analytics / notifications. Move a packed order to shipped → delivered.
 5. Customer account: `/shop/account` with e.g. `09129876543` (seeded buyer with an address). Returns: order **1045** is shipped and has a pending return in `/panel/returns`.
