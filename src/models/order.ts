@@ -26,6 +26,8 @@ export default interface Order {
   total: number;
   status: OrderStatus;
   note?: string;
+  /** Seller-only note for warehouse / packing slip */
+  packingNote?: string;
   created_at: string;
   paymentMethod?: "online" | "cod";
   paid_at?: string;
