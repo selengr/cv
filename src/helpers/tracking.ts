@@ -10,10 +10,12 @@ export const TRACK_FLOW: TrackStep[] = [
   { status: "paid", label: "پرداخت" },
   { status: "packed", label: "بسته‌بندی" },
   { status: "shipped", label: "ارسال" },
+  { status: "delivered", label: "تحویل" },
 ];
 
 export function trackStepIndex(status: OrderStatus) {
-  if (status === "cancelled") return -1;
+  if (status === "cancelled" || status === "returned") return -1;
+  if (status === "delivered") return TRACK_FLOW.length - 1;
   const index = TRACK_FLOW.findIndex((step) => step.status === status);
   return index >= 0 ? index : 0;
 }

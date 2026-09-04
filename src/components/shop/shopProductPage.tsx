@@ -13,6 +13,7 @@ import {
   GetProductReviews,
   GetShopProduct,
 } from "@/services/review";
+import { GetShopProducts } from "@/services/shop";
 import { addToCart, cartCount, readCart, subscribeCart } from "@/helpers/cart";
 import {
   isInWishlist,
@@ -58,6 +59,7 @@ export default function ShopProductPage({
     { url: `/shop/products/${id}/reviews`, id },
     ({ id: productIdValue }) => GetProductReviews(productIdValue),
   );
+  const { data: catalog } = useSWR("shop/products", GetShopProducts);
 
   const [authorName, setAuthorName] = useState("");
   const [rating, setRating] = useState(5);
@@ -70,6 +72,15 @@ export default function ShopProductPage({
   const reviews = reviewData?.reviews ?? [];
   const ratingAvg = reviewData?.ratingAvg ?? product?.ratingAvg ?? 0;
   const reviewCount = reviewData?.reviewCount ?? product?.reviewCount ?? 0;
+  const related =
+    product && catalog
+      ? catalog
+          .filter(
+            (item) =>
+              item.id !== product.id && item.category === product.category,
+          )
+          .slice(0, 4)
+      : [];
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -341,6 +352,29 @@ export default function ShopProductPage({
           )}
         </div>
       </section>
+
+      {related.length > 0 && (
+        <section className="mt-12">
+          <h2 className="font-display text-xl font-semibold">محصولات مرتبط</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((item) => (
+              <Link
+                key={item.id}
+                href={`/shop/products/${item.id}`}
+                className="rounded-3xl border border-[#14110e]/8 bg-white/85 p-4 shadow-sm transition hover:border-[#1f4a45]/30"
+              >
+                <ProductThumb item={item} className="h-28" />
+                <p className="mt-3 text-sm font-medium">
+                  {localizedTitle(item, locale)}
+                </p>
+                <p className="mt-1 text-xs text-[#6b6459]">
+                  {formatToman(item.price)}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </ShopShell>
   );
 }

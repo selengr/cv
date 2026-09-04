@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Bars3BottomLeftIcon, BellIcon } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
@@ -18,8 +19,10 @@ interface Props {
 
 export default function AdminPanelLayout({ children, permissions }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user: userData, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const user = new User(userData);
   const logout = useLogout();
 
@@ -30,7 +33,12 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
   }, [loading, router, userData]);
 
   useEffect(() => {
-    if (!loading && permissions && userData && !new User(userData).canAccess(permissions)) {
+    if (
+      !loading &&
+      permissions &&
+      userData &&
+      !new User(userData).canAccess(permissions)
+    ) {
       router.replace("/admin");
     }
   }, [loading, permissions, router, userData]);
@@ -39,8 +47,25 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
     await logout();
   };
 
-  if (loading) return <div className="p-8 text-sm text-[#6b6459]">در حال بررسی ورود...</div>;
-  if (!userData) return <div className="p-8 text-sm text-[#6b6459]">در حال انتقال...</div>;
+  const onSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    if (pathname.startsWith("/admin/orders")) {
+      router.push(`/admin/orders?q=${encodeURIComponent(q)}`);
+      return;
+    }
+    router.push(`/admin/products?q=${encodeURIComponent(q)}&page=1`);
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-sm text-[#6b6459]">در حال بررسی ورود...</div>
+    );
+  }
+  if (!userData) {
+    return <div className="p-8 text-sm text-[#6b6459]">در حال انتقال...</div>;
+  }
   if (permissions && !user.canAccess(permissions)) {
     return <span className="p-8 text-sm">loading ...</span>;
   }
@@ -61,7 +86,7 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
           </button>
           <div className="flex flex-1 justify-between px-4">
             <div className="flex flex-1">
-              <form className="flex w-full md:ml-0" action="#" method="GET">
+              <form className="flex w-full md:ml-0" onSubmit={onSearch}>
                 <label htmlFor="search-field" className="sr-only">
                   Search
                 </label>
@@ -72,21 +97,27 @@ export default function AdminPanelLayout({ children, permissions }: Props) {
                   <input
                     id="search-field"
                     className="block h-full w-full border-transparent py-2 pr-8 pl-3 text-gray-900 placeholder-gray-500 focus:border-transparent focus:placeholder-gray-400 focus:ring-0 focus:outline-none sm:text-sm"
-                    placeholder="جستجو"
+                    placeholder={
+                      pathname.startsWith("/admin/orders")
+                        ? "جستجوی سفارش (نام / موبایل / شماره)"
+                        : "جستجوی محصول"
+                    }
                     type="search"
                     name="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
                   />
                 </div>
               </form>
             </div>
             <div className="ml-4 flex items-center md:ml-6">
-              <button
-                type="button"
+              <Link
+                href="/panel/notifications"
                 className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
               >
                 <span className="sr-only">View notifications</span>
                 <BellIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
+              </Link>
 
               <Menu as="div" className="relative ml-3">
                 <MenuButton className="flex max-w-xs items-center rounded-full bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none">

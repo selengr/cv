@@ -86,10 +86,22 @@ function CallbackBody() {
       )}
 
       <div className="mt-6 flex flex-wrap gap-2">
+        {verified && order && (
+          <Link
+            href={`/shop/orders/${order.id}/confirm?phone=${encodeURIComponent(order.customerPhone)}`}
+            className="inline-flex rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
+          >
+            رسید سفارش
+          </Link>
+        )}
         {verified && (
           <Link
-            href="/shop/track"
-            className="inline-flex rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white"
+            href={
+              order
+                ? `/shop/track?orderId=${order.id}&phone=${encodeURIComponent(order.customerPhone)}`
+                : "/shop/track"
+            }
+            className="inline-flex rounded-full px-4 py-2 text-sm ring-1 ring-[#14110e]/15"
           >
             پیگیری سفارش
           </Link>

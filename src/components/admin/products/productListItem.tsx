@@ -120,13 +120,3 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
     </tr>
   );
 }
-        <button
-          onClick={() => setShowDeleteConfirmation(true)}
-          className="text-indigo-600 hover:text-indigo-900"
-        >
-          حذف
-        </button>
-      </td>
-    </tr>
-  );
-}

@@ -235,8 +235,8 @@ export default function LandingPage() {
           <Logo />
           <div className="flex items-center gap-4 text-sm text-[#6b6459]">
             <p>پنل ادمین فروشگاه · ۲۰۲۶</p>
-            <Link href="/test" className="text-[#1f4a45] hover:underline">
-              نمایش اجزا
+            <Link href="/shop/contact" className="text-[#1f4a45] hover:underline">
+              تماس
             </Link>
           </div>
         </div>

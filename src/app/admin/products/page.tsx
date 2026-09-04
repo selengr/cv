@@ -18,14 +18,19 @@ function ProductListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? 1) || 1;
+  const q = searchParams.get("q") ?? "";
   const { data, error, mutate } = useSWR(
-    { url: "/admin/products", page, per_page: 20 },
+    { url: "/admin/products", page, per_page: 20, q },
     GetProducts,
   );
   const loadingProducts = !data && !error;
 
-  const onPageChangeHandler = ({ selected }: { selected: number }) =>
-    router.push(`/admin/products?page=${selected + 1}`);
+  const onPageChangeHandler = ({ selected }: { selected: number }) => {
+    const params = new URLSearchParams();
+    params.set("page", String(selected + 1));
+    if (q) params.set("q", q);
+    router.push(`/admin/products?${params.toString()}`);
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -34,9 +39,18 @@ function ProductListPage() {
           <h1 className="text-xl font-semibold text-gray-900">لیست محصولات</h1>
           <p className="mt-2 text-sm text-gray-700">
             در این صفحه لیست محصولات وبسایت به شما نمایش داده می‌شود
+            {q ? ` · نتیجه برای «${q}»` : ""}
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:mr-16 sm:flex-none">
+        <div className="mt-4 flex flex-wrap gap-2 sm:mt-0 sm:mr-16 sm:flex-none">
+          {q && (
+            <Link
+              href="/admin/products"
+              className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm"
+            >
+              پاک کردن جستجو
+            </Link>
+          )}
           {user.canAccess("add_new_product") && (
             <Link
               href="/admin/products/create"

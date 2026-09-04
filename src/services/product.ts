@@ -1,8 +1,21 @@
 import { CreateProductInterface } from "@/contracts/admin/products";
 import callApi from "@/helpers/callApi";
 
-export async function GetProducts({ page = 1, per_page = 10 }) {
-  const res = await callApi().get(`/products?page=${page}&per_page=${per_page}`);
+export async function GetProducts({
+  page = 1,
+  per_page = 10,
+  q = "",
+}: {
+  page?: number;
+  per_page?: number;
+  q?: string;
+}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    per_page: String(per_page),
+  });
+  if (q.trim()) params.set("q", q.trim());
+  const res = await callApi().get(`/products?${params.toString()}`);
 
   return { products: res?.data?.data, total_page: res?.data?.total_page };
 }

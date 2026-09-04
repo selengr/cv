@@ -261,6 +261,9 @@ export default function ShopPage() {
         return;
       }
       toast.success("سفارش ثبت شد");
+      router.push(
+        `/shop/orders/${order.id}/confirm?phone=${encodeURIComponent(normalized)}`,
+      );
     } catch (err) {
       if (err instanceof ValidationError) {
         const first = Object.values(err.messages)[0];
@@ -430,8 +433,14 @@ export default function ShopPage() {
                     )}
                     <div className="mt-auto flex items-center justify-between pt-4">
                       <p className="text-sm font-medium">{formatToman(product.price)}</p>
-                      <span className="text-xs text-[#6b6459]">
-                        {stock.toLocaleString("fa-IR")} عدد
+                      <span
+                        className={`text-xs ${
+                          stock < 1 ? "font-medium text-red-700" : "text-[#6b6459]"
+                        }`}
+                      >
+                        {stock < 1
+                          ? "ناموجود"
+                          : `${stock.toLocaleString("fa-IR")} عدد`}
                       </span>
                     </div>
                     <div className="mt-3 flex gap-2">

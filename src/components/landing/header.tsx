@@ -7,9 +7,9 @@ import Logo from "@/components/landing/logo";
 
 const links = [
   { href: "/shop", label: "فروشگاه" },
-  { href: "#demo", label: "نمایش" },
+  { href: "/shop/about", label: "درباره" },
+  { href: "/shop/contact", label: "تماس" },
   { href: "#features", label: "امکانات" },
-  { href: "#how", label: "مسیر کار" },
 ];
 
 export default function LandingHeader() {

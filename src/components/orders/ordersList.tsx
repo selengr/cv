@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { GetOrders } from "@/services/order";
 import LoadingBox from "@/components/shared/loadingBox";
@@ -11,20 +12,32 @@ import { ORDER_STATUSES, formatDay, orderItemCount } from "@/helpers/orders";
 import { formatToman } from "@/helpers/catalog";
 import type { OrderStatus } from "@/models/order";
 
-export default function OrdersList({
+function OrdersListBody({
   createHref = "/panel/orders/create",
   detailHref = (id: number) => `/panel/orders/${id}`,
 }: {
   createHref?: string;
   detailHref?: (id: number) => string;
 }) {
+  const searchParams = useSearchParams();
+  const initialQ = searchParams.get("q") ?? "";
   const [status, setStatus] = useState<OrderStatus | "">("");
+  const [query, setQuery] = useState(initialQ);
   const { data, error } = useSWR("orders", GetOrders);
   const loading = !data && !error;
   const filtered = useMemo(() => {
     const orders = data ?? [];
-    return status ? orders.filter((item) => item.status === status) : orders;
-  }, [data, status]);
+    const q = query.trim().toLowerCase();
+    return orders.filter((item) => {
+      if (status && item.status !== status) return false;
+      if (!q) return true;
+      return (
+        String(item.id).includes(q) ||
+        item.customerName.toLowerCase().includes(q) ||
+        item.customerPhone.includes(q)
+      );
+    });
+  }, [data, query, status]);
 
   return (
     <div>
@@ -43,7 +56,18 @@ export default function OrdersList({
         </Link>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <label className="mt-6 block sm:max-w-md">
+        <span className="sr-only">جستجو</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="جستجو: نام، موبایل یا شماره سفارش"
+          className="w-full rounded-2xl border border-[#14110e]/10 bg-white px-4 py-2.5 text-sm focus:border-[#1f4a45] focus:ring-[#1f4a45]"
+        />
+      </label>
+
+      <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setStatus("")}
@@ -90,7 +114,8 @@ export default function OrdersList({
                   #{order.id} · {order.customerName}
                 </p>
                 <p className="text-xs text-[#6b6459]">
-                  {formatDay(order.created_at)} · {orderItemCount(order.items).toLocaleString("fa-IR")} قلم
+                  {formatDay(order.created_at)} ·{" "}
+                  {orderItemCount(order.items).toLocaleString("fa-IR")} قلم
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -102,5 +127,16 @@ export default function OrdersList({
         </div>
       )}
     </div>
+  );
+}
+
+export default function OrdersList(props: {
+  createHref?: string;
+  detailHref?: (id: number) => string;
+}) {
+  return (
+    <Suspense fallback={<LoadingBox />}>
+      <OrdersListBody {...props} />
+    </Suspense>
   );
 }

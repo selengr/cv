@@ -12,8 +12,21 @@ const plex = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Shopy | پنل فروشگاه",
-  description: "ورود با موبایل، کاتالوگ و سفارش برای فروشگاه‌های کوچک",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ),
+  title: {
+    default: "Shopy | پنل فروشگاه",
+    template: "%s | Shopy",
+  },
+  description:
+    "ورود با موبایل، کاتالوگ و سفارش برای فروشگاه‌های کوچک — پنل فروشنده و فروشگاه عمومی",
+  openGraph: {
+    title: "Shopy | پنل فروشگاه",
+    description: "فروشگاه کوچک با پنل فروشنده و خرید آنلاین",
+    locale: "fa_IR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

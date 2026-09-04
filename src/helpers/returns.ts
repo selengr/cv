@@ -25,7 +25,7 @@ export function returnStatusClass(status: ReturnStatus) {
   }
 }
 
-/** Only delivered (shipped) orders can start a return. */
+/** Shipped or delivered orders can start a return. */
 export function canRequestReturn(order: Order) {
-  return order.status === "shipped";
+  return order.status === "shipped" || order.status === "delivered";
 }

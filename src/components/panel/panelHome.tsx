@@ -21,7 +21,7 @@ import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type Product from "@/models/product";
 
 const OPEN_STATUSES = new Set(["pending", "paid", "packed"]);
-const SALES_STATUSES = new Set(["paid", "packed", "shipped"]);
+const SALES_STATUSES = new Set(["paid", "packed", "shipped", "delivered"]);
 
 export default function PanelHome() {
   const { user } = useAuth();

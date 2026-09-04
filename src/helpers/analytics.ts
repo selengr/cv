@@ -1,7 +1,7 @@
 import type Order from "@/models/order";
 import type Product from "@/models/product";
 
-const SALES_STATUSES = new Set(["paid", "packed", "shipped"]);
+const SALES_STATUSES = new Set(["paid", "packed", "shipped", "delivered"]);
 
 export type DaySales = {
   day: string;
@@ -85,6 +85,8 @@ export function statusBreakdown(orders: Order[]) {
     paid: 0,
     packed: 0,
     shipped: 0,
+    delivered: 0,
+    returned: 0,
     cancelled: 0,
   };
   for (const order of orders) {

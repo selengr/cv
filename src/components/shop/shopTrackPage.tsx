@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import ShopShell from "@/components/shop/shopShell";
 import ProductThumb from "@/components/shared/productThumb";
+import LoadingBox from "@/components/shared/loadingBox";
 import { TrackShopOrder } from "@/services/tracking";
 import { TRACK_FLOW, isTrackStepDone } from "@/helpers/tracking";
 import { formatToman } from "@/helpers/catalog";
@@ -13,16 +15,16 @@ import { iranianPhoneRegExp, normalizeIranianPhone } from "@/helpers/auth";
 import ValidationError from "@/exceptions/validationError";
 import type Order from "@/models/order";
 
-export default function ShopTrackPage() {
-  const [orderId, setOrderId] = useState("");
-  const [phone, setPhone] = useState("");
+function TrackBody() {
+  const search = useSearchParams();
+  const [orderId, setOrderId] = useState(search.get("orderId") ?? "");
+  const [phone, setPhone] = useState(search.get("phone") ?? "");
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
 
-  const lookup = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const id = Number(orderId);
-    const normalized = normalizeIranianPhone(phone);
+  const runLookup = useCallback(async (idRaw: string, phoneRaw: string) => {
+    const id = Number(idRaw);
+    const normalized = normalizeIranianPhone(phoneRaw);
     if (!Number.isFinite(id) || id < 1) {
       toast.error("شماره سفارش را درست بنویس");
       return;
@@ -48,16 +50,32 @@ export default function ShopTrackPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const id = search.get("orderId");
+    const phoneValue = search.get("phone");
+    if (id && phoneValue) {
+      setOrderId(id);
+      setPhone(phoneValue);
+      void runLookup(id, phoneValue);
+    }
+  }, [runLookup, search]);
+
+  const lookup = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await runLookup(orderId, phone);
   };
 
   return (
-    <ShopShell>
+    <>
       <Link href="/shop" className="text-sm text-[#1f4a45]">
         بازگشت به فروشگاه
       </Link>
       <h1 className="font-display mt-3 text-3xl font-semibold">پیگیری سفارش</h1>
       <p className="mt-2 text-sm text-[#5c564d]">
-        شماره سفارش و موبایلی که موقع خرید زدی را بنویس.
+        شماره سفارش و موبایلی که موقع خرید زدی را بنویس. نمونه: سفارش ۱۰۴۸ با
+        ۰۹۱۲۳۳۳۴۴۴۴
       </p>
 
       <form
@@ -71,7 +89,7 @@ export default function ShopTrackPage() {
             onChange={(event) => setOrderId(event.target.value)}
             inputMode="numeric"
             dir="ltr"
-            placeholder="مثلاً 12"
+            placeholder="مثلاً 1048"
             className="mt-1 w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
           />
         </label>
@@ -111,6 +129,10 @@ export default function ShopTrackPage() {
             <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">
               این سفارش لغو شده است.
             </p>
+          ) : order.status === "returned" ? (
+            <p className="rounded-2xl bg-violet-50 px-4 py-3 text-sm text-violet-900">
+              این سفارش مرجوع شده است.
+            </p>
           ) : (
             <ol className="relative space-y-0 border-r-2 border-[#14110e]/10 pr-6">
               {TRACK_FLOW.map((step) => {
@@ -149,7 +171,7 @@ export default function ShopTrackPage() {
             <ul className="mt-3 divide-y divide-[#14110e]/8">
               {order.items.map((item) => (
                 <li
-                  key={`${item.productId}-${item.title}`}
+                  key={`${item.productId}-${item.variantId ?? item.title}`}
                   className="flex items-center justify-between gap-3 py-3"
                 >
                   <span className="flex items-center gap-3">
@@ -175,6 +197,16 @@ export default function ShopTrackPage() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+export default function ShopTrackPage() {
+  return (
+    <ShopShell>
+      <Suspense fallback={<LoadingBox />}>
+        <TrackBody />
+      </Suspense>
     </ShopShell>
   );
 }

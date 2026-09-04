@@ -16,7 +16,7 @@ import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "15";
+const DATA_VERSION = "16";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -248,6 +248,20 @@ function seedProducts(): Product[] {
       emoji: "☕",
       image: "/products/mug.jpg",
     },
+    {
+      id: 9,
+      title: "شال پاییزه",
+      title_en: "Autumn scarf",
+      category: "1",
+      body: "شال نخی سبک — فعلاً تمام شده",
+      body_en: "Light cotton scarf — currently sold out",
+      price: 290000,
+      user_id: 1,
+      created_at: new Date().toISOString(),
+      stock: 0,
+      emoji: "🧣",
+      image: "/products/tshirt.jpg",
+    },
   ];
 }
 
@@ -272,6 +286,9 @@ function seedOrders(): Order[] {
           image: "/products/shoes.jpg",
           price: 1280000,
           qty: 1,
+          variantId: 2,
+          size: "41",
+          color: "سفید",
         },
         {
           productId: 5,
@@ -280,12 +297,28 @@ function seedOrders(): Order[] {
           image: "/products/cap.jpg",
           price: 180000,
           qty: 1,
+          variantId: 1,
+          color: "مشکی",
         },
       ],
+      subtotal: 1460000,
+      shippingMethodId: 2,
+      shippingTitle: "پیک شهری",
+      shippingFee: 0,
       total: 1460000,
       status: "pending",
+      paymentMethod: "cod",
       note: "اگر کفش سایز ۴۰ تمام شد، ۴۱ بفرستید",
       packingNote: "جعبه کفش جدا، کلاه را داخل نگذار",
+      address: {
+        label: "خانه",
+        recipientName: "نگار احمدی",
+        phone: "09123334444",
+        province: "تهران",
+        city: "تهران",
+        street: "ولیعصر، پلاک ۱۲۰",
+        postalCode: "141574",
+      },
       created_at: daysAgo(0, 9),
     },
     {
@@ -300,10 +333,22 @@ function seedOrders(): Order[] {
           image: "/products/tshirt.jpg",
           price: 320000,
           qty: 2,
+          variantId: 5,
+          size: "M",
+          color: "مشکی",
         },
       ],
-      total: 640000,
+      subtotal: 640000,
+      discount: 64000,
+      couponCode: "WELCOME10",
+      shippingMethodId: 1,
+      shippingTitle: "تحویل حضوری",
+      shippingFee: 0,
+      total: 576000,
       status: "paid",
+      paymentMethod: "online",
+      paid_at: daysAgo(0, 14),
+      refId: "DEMO-1047",
       created_at: daysAgo(0, 14),
     },
     {
@@ -318,6 +363,9 @@ function seedOrders(): Order[] {
           image: "/products/jeans.jpg",
           price: 890000,
           qty: 1,
+          variantId: 2,
+          size: "32",
+          color: "آبی روشن",
         },
         {
           productId: 3,
@@ -326,10 +374,26 @@ function seedOrders(): Order[] {
           image: "/products/tshirt.jpg",
           price: 320000,
           qty: 1,
+          variantId: 2,
+          size: "M",
+          color: "سفید",
         },
       ],
+      subtotal: 1210000,
+      shippingMethodId: 3,
+      shippingTitle: "پست پیشتاز",
+      shippingFee: 0,
       total: 1210000,
       status: "packed",
+      paymentMethod: "cod",
+      packingNote: "جین را تا نکن؛ تیشرت روی آن",
+      address: {
+        recipientName: "سارا محمدی",
+        phone: "09127778888",
+        province: "اصفهان",
+        city: "اصفهان",
+        street: "چهارباغ عباسی، پلاک ۴۵",
+      },
       created_at: daysAgo(1, 16),
     },
     {
@@ -344,10 +408,24 @@ function seedOrders(): Order[] {
           image: "/products/bag.jpg",
           price: 2450000,
           qty: 1,
+          variantId: 1,
+          color: "قهوه‌ای",
         },
       ],
-      total: 2450000,
+      subtotal: 2450000,
+      shippingMethodId: 4,
+      shippingTitle: "تیپاکس",
+      shippingFee: 65000,
+      total: 2515000,
       status: "shipped",
+      paymentMethod: "cod",
+      address: {
+        recipientName: "رضا کاظمی",
+        phone: "09120001111",
+        province: "فارس",
+        city: "شیراز",
+        street: "زند، کوچه ۷",
+      },
       created_at: daysAgo(2, 11),
     },
     {
@@ -366,6 +444,7 @@ function seedOrders(): Order[] {
       ],
       total: 1750000,
       status: "cancelled",
+      paymentMethod: "online",
       note: "مشتری پشیمان شد",
       created_at: daysAgo(3, 18),
     },
@@ -373,6 +452,7 @@ function seedOrders(): Order[] {
       id: 1043,
       customerName: "امیر حسینی",
       customerPhone: "09129876543",
+      customerId: 1,
       items: [
         {
           productId: 7,
@@ -381,6 +461,8 @@ function seedOrders(): Order[] {
           image: "/products/backpack.jpg",
           price: 980000,
           qty: 1,
+          variantId: 2,
+          color: "سرمه‌ای",
         },
         {
           productId: 8,
@@ -391,9 +473,102 @@ function seedOrders(): Order[] {
           qty: 2,
         },
       ],
+      subtotal: 1460000,
+      shippingMethodId: 2,
+      shippingTitle: "پیک شهری",
+      shippingFee: 0,
       total: 1460000,
-      status: "pending",
+      status: "delivered",
+      paymentMethod: "cod",
+      address: {
+        label: "خانه",
+        recipientName: "امیر حسینی",
+        phone: "09129876543",
+        province: "تهران",
+        city: "تهران",
+        street: "نیاوران، خیابان کامرانیه",
+      },
       created_at: daysAgo(4, 12),
+    },
+  ];
+}
+
+function seedCustomers(): Customer[] {
+  return [
+    {
+      id: 1,
+      name: "امیر حسینی",
+      phone: "09129876543",
+      created_at: daysAgo(20, 10),
+    },
+  ];
+}
+
+function seedAddresses(): Address[] {
+  return [
+    {
+      id: 1,
+      customerId: 1,
+      label: "خانه",
+      recipientName: "امیر حسینی",
+      phone: "09129876543",
+      province: "تهران",
+      city: "تهران",
+      street: "نیاوران، خیابان کامرانیه",
+      postalCode: "195574",
+      isDefault: true,
+    },
+  ];
+}
+
+function seedNotifications(): OrderNotification[] {
+  return [
+    {
+      id: 1,
+      orderId: 1048,
+      customerName: "نگار احمدی",
+      total: 1460000,
+      message: "سفارش جدید ثبت شد",
+      created_at: daysAgo(0, 9),
+      read: false,
+    },
+    {
+      id: 2,
+      orderId: 1047,
+      customerName: "حسین مرادی",
+      total: 576000,
+      message: "پرداخت آنلاین تایید شد",
+      created_at: daysAgo(0, 14),
+      read: false,
+    },
+  ];
+}
+
+function seedStockAlerts(): StockAlert[] {
+  return [
+    {
+      id: 1,
+      productId: 2,
+      title: "کیف چرم دستی",
+      stock: 3,
+      created_at: daysAgo(1, 8),
+      read: false,
+    },
+    {
+      id: 2,
+      productId: 6,
+      title: "ساعت مچی",
+      stock: 3,
+      created_at: daysAgo(2, 12),
+      read: false,
+    },
+    {
+      id: 3,
+      productId: 9,
+      title: "شال پاییزه",
+      stock: 0,
+      created_at: daysAgo(0, 15),
+      read: false,
     },
   ];
 }
@@ -504,11 +679,11 @@ function ensureSeed() {
   writeJson(PRODUCTS_KEY, seedProducts());
   writeJson(ORDERS_KEY, seedOrders());
   writeJson(REVIEWS_KEY, seedReviews());
-  writeJson(STOCK_ALERTS_KEY, []);
-  writeJson(NOTIFICATIONS_KEY, []);
+  writeJson(STOCK_ALERTS_KEY, seedStockAlerts());
+  writeJson(NOTIFICATIONS_KEY, seedNotifications());
   writeJson(COUPONS_KEY, seedCoupons());
-  writeJson(CUSTOMERS_KEY, []);
-  writeJson(ADDRESSES_KEY, []);
+  writeJson(CUSTOMERS_KEY, seedCustomers());
+  writeJson(ADDRESSES_KEY, seedAddresses());
   writeJson(SHIPPING_KEY, seedShippingMethods());
   writeJson(RETURNS_KEY, seedReturns());
   writeJson(SETTINGS_KEY, defaultShopSettings());

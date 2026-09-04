@@ -285,7 +285,17 @@ export async function handleLocalRequest(
 
     const page = Number(search.get("page") ?? 1) || 1;
     const perPage = Number(search.get("per_page") ?? 10) || 10;
-    const all = getProducts();
+    const q = String(search.get("q") ?? "")
+      .trim()
+      .toLowerCase();
+    const all = getProducts().filter((item) => {
+      if (!q) return true;
+      return (
+        item.title.toLowerCase().includes(q) ||
+        String(item.id).includes(q) ||
+        (item.title_en ?? "").toLowerCase().includes(q)
+      );
+    });
     const start = (page - 1) * perPage;
     const data = all.slice(start, start + perPage);
     return ok(config, {
@@ -1545,7 +1555,7 @@ export async function handleLocalRequest(
       throw fail(config, 404, { message: "order not found" });
     }
     const order = orders[orderIndex];
-    if (order.status !== "shipped") {
+    if (order.status !== "shipped" && order.status !== "delivered") {
       throw fail(config, 422, {
         errors: { status: "وضعیت سفارش برای مرجوعی مناسب نیست" },
       });
