@@ -212,9 +212,33 @@ export default function OrderDetail({
             )}
             {order.note && (
               <p className="mt-3 rounded-2xl bg-[#f4efe6] p-3 text-sm text-[#5c564d]">
-                {order.note}
+                یادداشت مشتری: {order.note}
               </p>
             )}
+          </div>
+
+          <div className="rounded-3xl border border-[#14110e]/8 bg-white/85 p-5 shadow-sm">
+            <h2 className="font-display text-lg font-semibold">
+              یادداشت بسته‌بندی
+            </h2>
+            <p className="mt-1 text-xs text-[#6b6459]">
+              فقط برای انبار؛ روی برگه بسته‌بندی چاپ می‌شود.
+            </p>
+            <textarea
+              value={noteDraft}
+              onChange={(event) => setPackingNote(event.target.value)}
+              rows={3}
+              placeholder="مثلاً: جعبه جدا، کارت هدیه بگذار"
+              className="mt-3 w-full rounded-2xl border border-[#14110e]/10 px-3 py-2.5 text-sm"
+            />
+            <button
+              type="button"
+              disabled={savingNote}
+              onClick={savePackingNote}
+              className="mt-3 rounded-full bg-[#1f4a45] px-4 py-2 text-sm text-white disabled:opacity-50"
+            >
+              {savingNote ? "..." : "ذخیره یادداشت"}
+            </button>
           </div>
 
           {nextStatuses(order.status).length > 0 && (

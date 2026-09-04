@@ -126,6 +126,7 @@ export default function ProjectShowcase() {
               { href: "/panel/products", title: "کاتالوگ پنل", body: "محصولات نمونه با فیلتر" },
               { href: "/panel/orders", title: "سفارش‌ها", body: "لیست، وضعیت، سفارش دستی" },
               { href: "/panel/orders/1048/invoice", title: "فاکتور", body: "چاپ فاکتور سفارش نمونه" },
+              { href: "/panel/orders/1048/packing", title: "بسته‌بندی", body: "برگه انبار با یادداشت فروشنده" },
               { href: "/panel/orders/create", title: "سفارش دستی", body: "ثبت سفارش تلفنی" },
               { href: "/admin", title: "داشبورد ادمین", body: "خلاصه مدیریت" },
               { href: "/admin/orders", title: "سفارش ادمین", body: "همان لیست در پنل ادمین" },
