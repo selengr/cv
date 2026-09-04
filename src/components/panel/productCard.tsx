@@ -13,7 +13,12 @@ export default function ProductCard({ product }: { product: Product }) {
   const stock = product.stock ?? 0;
 
   return (
-    <article className="flex flex-col rounded-3xl border border-[#14110e]/8 bg-white/85 p-4 shadow-sm">
+    <article className="relative flex flex-col rounded-3xl border border-[#14110e]/8 bg-white/85 p-4 shadow-sm">
+      {product.featured && (
+        <span className="absolute top-3 left-3 z-10 rounded-full bg-[#1f4a45] px-2.5 py-0.5 text-[10px] text-white">
+          ویژه
+        </span>
+      )}
       <ProductThumb item={product} className="h-36" />
       <p className="mt-3 text-xs text-[#1f4a45]">{categoryLabel(product.category)}</p>
       <h3 className="font-display mt-1 text-lg font-semibold">{product.title}</h3>

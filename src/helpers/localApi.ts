@@ -326,6 +326,7 @@ export async function handleLocalRequest(
       emoji: String(body.emoji ?? "📦"),
       image: String(body.image ?? "").trim() || undefined,
       variants,
+      featured: Boolean(body.featured),
     };
     saveProducts([product, ...products]);
     return ok(config, { product }, 201);
@@ -364,9 +365,29 @@ export async function handleLocalRequest(
       emoji: String(body.emoji ?? products[index].emoji ?? "📦"),
       image: String(body.image ?? products[index].image ?? "").trim() || undefined,
       variants,
+      featured:
+        body.featured !== undefined
+          ? Boolean(body.featured)
+          : products[index].featured,
     };
     saveProducts(products);
     recordLowStockAlerts([products[index]]);
+    return ok(config, { product: products[index] });
+  }
+
+  const featureMatch = path.match(/^\/products\/(\d+)\/feature$/);
+  if (method === "POST" && featureMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(featureMatch[1]);
+    const products = getProducts();
+    const index = products.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    products[index] = {
+      ...products[index],
+      featured: !products[index].featured,
+    };
+    saveProducts(products);
     return ok(config, { product: products[index] });
   }
 

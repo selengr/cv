@@ -48,6 +48,7 @@ const sampleProduct: Product = {
   stock: 12,
   emoji: "👟",
   image: "/products/shoes.jpg",
+  featured: true,
 };
 
 function Block({

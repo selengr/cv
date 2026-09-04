@@ -34,3 +34,8 @@ export async function UpdateProduct(
 export async function DeleteProduct(productId: number) {
   return await callApi().post(`/products/${productId}/delete`, {});
 }
+
+export async function ToggleProductFeatured(productId: number) {
+  const res = await callApi().post(`/products/${productId}/feature`, {});
+  return res.data?.product;
+}

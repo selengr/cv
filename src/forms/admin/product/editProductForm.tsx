@@ -35,6 +35,7 @@ const FormikEditProductForm = withFormik<ProductFormProps, CreateProductInterfac
       emoji: product.emoji ?? "📦",
       image: product.image ?? "",
       variants: variantsFromProduct(product.variants),
+      featured: Boolean(product.featured),
     }),
     validationSchema: yup.object({
       title: yup.string().required("عنوان الزامی است").min(4).max(255),

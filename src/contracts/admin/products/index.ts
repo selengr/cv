@@ -19,6 +19,7 @@ export interface CreateProductInterface {
   emoji: string;
   image: string;
   variants: ProductVariantInput[];
+  featured: boolean;
 }
 
 export function emptyVariantRow(): ProductVariantInput {

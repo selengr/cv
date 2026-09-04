@@ -111,6 +111,11 @@ export default function ShopPage() {
   const usingNewAddress =
     needsAddress &&
     (addressId === "new" || addressId === null || savedAddresses.length === 0);
+  const showFeatured = category === "" && !query.trim();
+  const featured = useMemo(() => {
+    if (!showFeatured) return [];
+    return (data ?? []).filter((item) => item.featured && productStock(item) > 0);
+  }, [data, showFeatured]);
   const filtered = useMemo(() => {
     const products = data ?? [];
     return products.filter((item) => {
@@ -334,6 +339,56 @@ export default function ShopPage() {
               description="عبارت یا دسته را عوض کن"
             />
           ) : (
+            <>
+              {featured.length > 0 && (
+                <section className="mb-8">
+                  <h2 className="font-display text-xl font-semibold">پیشنهادها</h2>
+                  <p className="mt-1 text-sm text-[#6b6459]">
+                    چند تا از بهترین‌ها برای شروع
+                  </p>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    {featured.map((product) => {
+                      const stock = productStock(product);
+                      const needsOptions = hasVariants(product);
+                      return (
+                        <article
+                          key={`feat-${product.id}`}
+                          className="relative flex flex-col rounded-3xl border border-[#1f4a45]/25 bg-[#1f4a45]/[0.04] p-4 shadow-sm"
+                        >
+                          <span className="absolute top-3 left-3 rounded-full bg-[#1f4a45] px-2.5 py-0.5 text-[10px] text-white">
+                            ویژه
+                          </span>
+                          <ProductThumb item={product} className="h-36" />
+                          <p className="mt-3 text-xs text-[#1f4a45]">
+                            {categoryLabel(product.category)}
+                          </p>
+                          <h3 className="font-display mt-1 text-lg font-semibold">
+                            <Link
+                              href={`/shop/products/${product.id}`}
+                              className="hover:text-[#1f4a45]"
+                            >
+                              {localizedTitle(product, locale)}
+                            </Link>
+                          </h3>
+                          <div className="mt-auto flex items-center justify-between pt-3">
+                            <p className="text-sm font-medium">
+                              {formatToman(product.price)}
+                            </p>
+                            <button
+                              type="button"
+                              disabled={stock < 1}
+                              onClick={() => onAdd(product)}
+                              className="rounded-full bg-[#1f4a45] px-3 py-1.5 text-xs text-white disabled:opacity-40"
+                            >
+                              {needsOptions ? "انتخاب" : "سبد"}
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
             <div className="grid gap-4 sm:grid-cols-2">
               {filtered.map((product) => {
                 const stock = productStock(product);
@@ -341,8 +396,13 @@ export default function ShopPage() {
                 return (
                   <article
                     key={product.id}
-                    className="flex flex-col rounded-3xl border border-[#14110e]/8 bg-white/85 p-4 shadow-sm"
+                    className="relative flex flex-col rounded-3xl border border-[#14110e]/8 bg-white/85 p-4 shadow-sm"
                   >
+                    {product.featured && (
+                      <span className="absolute top-3 left-3 z-10 rounded-full bg-[#1f4a45] px-2.5 py-0.5 text-[10px] text-white">
+                        ویژه
+                      </span>
+                    )}
                     <ProductThumb item={product} className="h-40" />
                     <p className="mt-3 text-xs text-[#1f4a45]">
                       {categoryLabel(product.category)}
@@ -417,6 +477,7 @@ export default function ShopPage() {
                 );
               })}
             </div>
+            </>
           )}
         </div>
 

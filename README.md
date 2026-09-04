@@ -24,6 +24,7 @@ I started this around 2022 on Next.js 12, left it alone for a long time, then dr
 - returns / refunds (`/panel/returns`, request from `/shop/account` on shipped orders)
 - packing slips with seller packing notes (`/panel/orders/[id]/packing`)
 - shop settings (`/panel/settings`) — name, contact, invoice footer
+- featured products — mark them in admin; they show up as «پیشنهادها» on `/shop`
 
 Default mode needs no backend: `NEXT_PUBLIC_LOCAL_AUTH=true`. Sign in as `09121111111`, grab the code from the toast / next screen (it stays up a bit longer so you can copy it), and you're in. Shop is `/shop`.
 

@@ -9,7 +9,7 @@ import ValidationError from "@/exceptions/validationError";
 import { categoryLabel, formatToman } from "@/helpers/catalog";
 import ProductThumb from "@/components/shared/productThumb";
 import Product from "@/models/product";
-import { DeleteProduct } from "@/services/product";
+import { DeleteProduct, ToggleProductFeatured } from "@/services/product";
 
 interface Props {
   product: Product;
@@ -21,6 +21,7 @@ interface Props {
 
 export default function ProductListItem({ product, mutateProducts }: Props) {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [featuring, setFeaturing] = useState(false);
 
   const deleteHandler = async () => {
     try {
@@ -38,6 +39,21 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
       }
 
       toast.error("متاسفانه مشکلی در حذف محصول وجود دارد.");
+    }
+  };
+
+  const toggleFeatured = async () => {
+    setFeaturing(true);
+    try {
+      await ToggleProductFeatured(product.id);
+      await mutateProducts();
+      toast.success(
+        product.featured ? "از پیشنهادها برداشته شد" : "به پیشنهادها اضافه شد",
+      );
+    } catch {
+      toast.error("تغییر وضعیت نشد");
+    } finally {
+      setFeaturing(false);
     }
   };
 
@@ -59,6 +75,11 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
             <ProductThumb item={product} className="h-10" compact />
           </span>
           {product.id}
+          {product.featured && (
+            <span className="rounded-full bg-[#1f4a45]/10 px-2 py-0.5 text-[10px] text-[#1f4a45]">
+              ویژه
+            </span>
+          )}
         </span>
       </td>
       <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-900">
@@ -74,12 +95,31 @@ export default function ProductListItem({ product, mutateProducts }: Props) {
         {(product.stock ?? 0).toLocaleString("fa-IR")}
       </td>
       <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
+        <button
+          type="button"
+          disabled={featuring}
+          onClick={toggleFeatured}
+          className="ml-4 text-[#1f4a45] hover:underline disabled:opacity-50"
+        >
+          {product.featured ? "حذف ویژه" : "ویژه"}
+        </button>
         <Link
           href={`/admin/products/${product.id}/edit`}
           className="ml-4 text-indigo-600 hover:text-indigo-900"
         >
           ویرایش
         </Link>
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirmation(true)}
+          className="text-red-600 hover:text-red-900"
+        >
+          حذف
+        </button>
+      </td>
+    </tr>
+  );
+}
         <button
           onClick={() => setShowDeleteConfirmation(true)}
           className="text-indigo-600 hover:text-indigo-900"
