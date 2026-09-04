@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 const products = [
-  { id: "1042", title: "کفش اسپرت سفید", price: "۱٬۲۸۰٬۰۰۰", stock: "۱۲" },
-  { id: "1041", title: "کیف چرم دستی", price: "۲٬۴۵۰٬۰۰۰", stock: "۴" },
-  { id: "1040", title: "تیشرت نخی", price: "۳۲۰٬۰۰۰", stock: "۲۸" },
+  { id: "1", title: "کفش اسپرت سفید", price: "۱٬۲۸۰٬۰۰۰", stock: "۱۱" },
+  { id: "2", title: "کیف چرم دستی", price: "۲٬۴۵۰٬۰۰۰", stock: "۳" },
+  { id: "3", title: "تیشرت نخی", price: "۳۲۰٬۰۰۰", stock: "۲۵" },
 ];
 
 const orders = [
@@ -18,7 +18,7 @@ const tabs = ["داشبورد", "سفارش‌ها", "محصولات", "کارب
 
 export default function DashboardPreview() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("سفارش‌ها");
-  const [activeId, setActiveId] = useState("1042");
+  const [activeId, setActiveId] = useState("1");
 
   return (
     <div className="relative w-full overflow-hidden rounded-3xl border border-white/10 bg-[#14110e] shadow-[0_40px_80px_-28px_rgba(20,17,14,0.55)]">

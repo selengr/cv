@@ -78,6 +78,17 @@ npm run dev
 
 Open http://localhost:3000
 
+## Deploy
+
+Set `NEXT_PUBLIC_APP_URL` to your real public URL (no trailing slash). Sitemap, Open Graph, and Zarinpal callbacks use it — leaving the localhost default breaks those on a live host.
+
+Also keep `NEXT_PUBLIC_LOCAL_AUTH=true` for the browser mock API demo. For a real backend, flip it off and point `NEXT_PUBLIC_API_URL` at your API.
+
+```bash
+npm run build
+npm start
+```
+
 ## Later
 
 Still thinking about a proper image CDN someday. For now the local photo upload is fine.

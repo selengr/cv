@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
 import { toast } from "react-toastify";
 import ShopShell from "@/components/shop/shopShell";
 import ProductThumb from "@/components/shared/productThumb";
@@ -17,14 +18,32 @@ import type Order from "@/models/order";
 
 function TrackBody() {
   const search = useSearchParams();
-  const [orderId, setOrderId] = useState(search.get("orderId") ?? "");
-  const [phone, setPhone] = useState(search.get("phone") ?? "");
+  const paramId = search.get("orderId") ?? "";
+  const paramPhone = search.get("phone") ?? "";
+  const [orderId, setOrderId] = useState(paramId);
+  const [phone, setPhone] = useState(paramPhone);
+  const [manualOrder, setManualOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
-  const [order, setOrder] = useState<Order | null>(null);
 
-  const runLookup = useCallback(async (idRaw: string, phoneRaw: string) => {
-    const id = Number(idRaw);
-    const normalized = normalizeIranianPhone(phoneRaw);
+  const autoPhone = paramPhone ? normalizeIranianPhone(paramPhone) : "";
+  const canAuto =
+    Boolean(paramId) &&
+    Number(paramId) > 0 &&
+    iranianPhoneRegExp.test(autoPhone);
+
+  const { data: autoOrder, isLoading: autoLoading } = useSWR(
+    canAuto ? ["shop/track", paramId, autoPhone] : null,
+    ([, id, phoneValue]) =>
+      TrackShopOrder({ orderId: Number(id), phone: String(phoneValue) }),
+    { shouldRetryOnError: false },
+  );
+
+  const order = manualOrder ?? autoOrder ?? null;
+
+  const lookup = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const id = Number(orderId);
+    const normalized = normalizeIranianPhone(phone);
     if (!Number.isFinite(id) || id < 1) {
       toast.error("شماره سفارش را درست بنویس");
       return;
@@ -37,9 +56,9 @@ function TrackBody() {
     setLoading(true);
     try {
       const found = await TrackShopOrder({ orderId: id, phone: normalized });
-      setOrder(found);
+      setManualOrder(found);
     } catch (err) {
-      setOrder(null);
+      setManualOrder(null);
       if (err instanceof ValidationError) {
         const first = Object.values(err.messages)[0];
         const message = Array.isArray(first) ? first[0] : first;
@@ -50,21 +69,6 @@ function TrackBody() {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    const id = search.get("orderId");
-    const phoneValue = search.get("phone");
-    if (id && phoneValue) {
-      setOrderId(id);
-      setPhone(phoneValue);
-      void runLookup(id, phoneValue);
-    }
-  }, [runLookup, search]);
-
-  const lookup = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await runLookup(orderId, phone);
   };
 
   return (
@@ -112,6 +116,12 @@ function TrackBody() {
           {loading ? "در حال جستجو..." : "پیگیری"}
         </button>
       </form>
+
+      {(autoLoading || loading) && !order && (
+        <div className="mt-8">
+          <LoadingBox />
+        </div>
+      )}
 
       {order && (
         <div className="mt-10 space-y-6">
