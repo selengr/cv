@@ -967,6 +967,25 @@ export async function handleLocalRequest(
     return ok(config, { order: orders[index] });
   }
 
+  const packingMatch = path.match(/^\/orders\/(\d+)\/packing-note$/);
+  if (method === "POST" && packingMatch) {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const id = Number(packingMatch[1]);
+    const orders = getOrders();
+    const index = orders.findIndex((item) => item.id === id);
+    if (index < 0) throw fail(config, 404, { message: "not found" });
+    const packingNote = String(body.packingNote ?? "").trim() || undefined;
+    if (packingNote && packingNote.length > 500) {
+      throw fail(config, 422, {
+        errors: { packingNote: "یادداشت بسته‌بندی خیلی بلند است" },
+      });
+    }
+    orders[index] = { ...orders[index], packingNote };
+    saveOrders(orders);
+    return ok(config, { order: orders[index] });
+  }
+
   if (method === "GET" && path === "/stock-alerts") {
     const session = getSession();
     if (!session) throw fail(config, 401, { message: "unauthenticated" });

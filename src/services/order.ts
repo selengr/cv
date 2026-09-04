@@ -24,3 +24,10 @@ export async function CreateOrder(values: {
 export async function UpdateOrderStatus(orderId: number, status: OrderStatus) {
   return await callApi().post(`/orders/${orderId}/status`, { status });
 }
+
+export async function UpdatePackingNote(orderId: number, packingNote: string) {
+  const res = await callApi().post(`/orders/${orderId}/packing-note`, {
+    packingNote,
+  });
+  return res.data?.order as Order;
+}

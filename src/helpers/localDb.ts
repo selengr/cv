@@ -14,7 +14,7 @@ import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "12";
+const DATA_VERSION = "13";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -279,6 +279,7 @@ function seedOrders(): Order[] {
       total: 1460000,
       status: "pending",
       note: "اگر کفش سایز ۴۰ تمام شد، ۴۱ بفرستید",
+      packingNote: "جعبه کفش جدا، کلاه را داخل نگذار",
       created_at: daysAgo(0, 9),
     },
     {
