@@ -1,11 +1,15 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate as globalMutate } from "swr";
 import { toast } from "react-toastify";
-import { GetSingleOrder, UpdateOrderStatus } from "@/services/order";
+import {
+  GetSingleOrder,
+  UpdateOrderStatus,
+  UpdatePackingNote,
+} from "@/services/order";
 import LoadingBox from "@/components/shared/loadingBox";
 import OrderStatusBadge from "@/components/orders/orderStatusBadge";
 import ProductThumb from "@/components/shared/productThumb";
@@ -30,6 +34,8 @@ export default function OrderDetail({
     GetSingleOrder,
   );
   const order = data?.order;
+  const [packingNote, setPackingNote] = useState<string | null>(null);
+  const [savingNote, setSavingNote] = useState(false);
 
   const changeStatus = async (status: OrderStatus) => {
     try {
@@ -43,6 +49,30 @@ export default function OrderDetail({
         return;
       }
       toast.error("وضعیت عوض نشد");
+    }
+  };
+
+  const savePackingNote = async () => {
+    if (!order) return;
+    setSavingNote(true);
+    try {
+      await UpdatePackingNote(
+        order.id,
+        packingNote ?? order.packingNote ?? "",
+      );
+      setPackingNote(null);
+      await mutate();
+      toast.success("یادداشت بسته‌بندی ذخیره شد");
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        const first = Object.values(err.messages)[0];
+        const message = Array.isArray(first) ? first[0] : first;
+        toast.error(String(message ?? "ذخیره نشد"));
+        return;
+      }
+      toast.error("ذخیره نشد");
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -62,6 +92,8 @@ export default function OrderDetail({
     );
   }
 
+  const noteDraft = packingNote ?? order.packingNote ?? "";
+
   return (
     <div>
       <Link href={backHref} className="text-sm text-[#1f4a45]">
@@ -80,6 +112,12 @@ export default function OrderDetail({
             className="rounded-full border border-[#14110e]/12 bg-white px-4 py-1.5 text-sm"
           >
             فاکتور
+          </Link>
+          <Link
+            href={`/panel/orders/${order.id}/packing`}
+            className="rounded-full border border-[#14110e]/12 bg-white px-4 py-1.5 text-sm"
+          >
+            بسته‌بندی
           </Link>
           <OrderStatusBadge status={order.status} />
         </div>
