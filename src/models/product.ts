@@ -23,4 +23,6 @@ export default interface Product {
   ratingAvg?: number;
   reviewCount?: number;
   variants?: ProductVariant[];
+  /** pin on the public shop homepage */
+  featured?: boolean;
 }
