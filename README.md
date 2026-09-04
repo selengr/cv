@@ -23,6 +23,7 @@ I started this around 2022 on Next.js 12, left it alone for a long time, then dr
 - size / color variants on products (pick them on the product page; edit in admin)
 - returns / refunds (`/panel/returns`, request from `/shop/account` on shipped orders)
 - packing slips with seller packing notes (`/panel/orders/[id]/packing`)
+- shop settings (`/panel/settings`) — name, contact, invoice footer
 
 Default mode needs no backend: `NEXT_PUBLIC_LOCAL_AUTH=true`. Sign in as `09121111111`, grab the code from the toast / next screen (it stays up a bit longer so you can copy it), and you're in. Shop is `/shop`.
 
@@ -65,4 +66,4 @@ Open http://localhost:3000
 
 ## Later
 
-A proper image CDN would be nice someday. Not blocking anything right now.
+Still thinking about a proper image CDN someday. For now the local photo upload is fine.

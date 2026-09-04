@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import useSWR from "swr";
 import Logo from "@/components/landing/logo";
+import { GetShopSettingsPublic } from "@/services/settings";
 import {
   readLocale,
   subscribeLocale,
@@ -21,12 +23,22 @@ export default function ShopShell({
 }) {
   const locale = useSyncExternalStore(subscribeLocale, readLocale, () => "fa" as ShopLocale);
   const fa = locale === "fa";
+  const { data: settings } = useSWR("shop/settings", GetShopSettingsPublic, {
+    revalidateOnFocus: false,
+  });
 
   return (
     <div className="min-h-screen bg-[#f4efe6] font-sans text-[#14110e]" dir={fa ? "rtl" : "ltr"}>
       <header className="sticky top-0 z-20 border-b border-[#14110e]/8 bg-[#f4efe6]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <Logo />
+          <div>
+            <Logo />
+            {settings?.tagline && (
+              <p className="mt-0.5 hidden text-xs text-[#6b6459] sm:block">
+                {settings.tagline}
+              </p>
+            )}
+          </div>
           <nav className="flex items-center gap-2 text-[0.92rem]">
             <Link
               href="/shop"
@@ -80,6 +92,17 @@ export default function ShopShell({
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">{children}</div>
+      {(settings?.phone || settings?.instagram || settings?.address) && (
+        <footer className="border-t border-[#14110e]/8 px-5 py-6 text-center text-xs text-[#6b6459] sm:px-8">
+          {[
+            settings.phone,
+            settings.instagram ? `@${settings.instagram}` : "",
+            settings.address,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </footer>
+      )}
     </div>
   );
 }

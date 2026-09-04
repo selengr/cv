@@ -122,6 +122,7 @@ export default function ProjectShowcase() {
               { href: "/panel/coupons", title: "کد تخفیف", body: "ساخت و فعال‌سازی کوپن" },
               { href: "/panel/shipping", title: "ارسال", body: "روش‌ها، هزینه و ارسال رایگان" },
               { href: "/panel/returns", title: "مرجوعی", body: "تایید یا رد درخواست برگشت" },
+              { href: "/panel/settings", title: "تنظیمات", body: "نام فروشگاه، تماس، فاکتور" },
               { href: "/panel/notifications", title: "اعلان‌ها", body: "سفارش‌های جدید برای فروشنده" },
               { href: "/panel/products", title: "کاتالوگ پنل", body: "محصولات نمونه با فیلتر" },
               { href: "/panel/orders", title: "سفارش‌ها", body: "لیست، وضعیت، سفارش دستی" },
