@@ -40,6 +40,7 @@ import {
   getReviews,
   getSession,
   getShippingMethods,
+  getShopSettings,
   getStockAlerts,
   getOrderNotifications,
   getUsers,
@@ -64,6 +65,7 @@ import {
   saveReturns,
   saveSession,
   saveShippingMethods,
+  saveShopSettings,
   saveStockAlerts,
   saveUsers,
 } from "@/helpers/localDb";
@@ -1563,6 +1565,35 @@ export async function handleLocalRequest(
     };
     saveReturns(returns);
     return ok(config, { return: returns[index], order: orders[orderIndex] });
+  }
+
+  if (method === "GET" && path === "/shop/settings") {
+    return ok(config, { settings: getShopSettings() });
+  }
+
+  if (method === "GET" && path === "/settings") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    return ok(config, { settings: getShopSettings() });
+  }
+
+  if (method === "POST" && path === "/settings") {
+    const session = getSession();
+    if (!session) throw fail(config, 401, { message: "unauthenticated" });
+    const name = String(body.name ?? "").trim();
+    if (name.length < 2) {
+      throw fail(config, 422, { errors: { name: "نام فروشگاه را بنویس" } });
+    }
+    const settings = {
+      name,
+      tagline: String(body.tagline ?? "").trim() || undefined,
+      phone: String(body.phone ?? "").trim() || undefined,
+      instagram: String(body.instagram ?? "").trim().replace(/^@/, "") || undefined,
+      address: String(body.address ?? "").trim() || undefined,
+      invoiceFooter: String(body.invoiceFooter ?? "").trim() || undefined,
+    };
+    saveShopSettings(settings);
+    return ok(config, { settings });
   }
 
   if (method === "POST" && path === "/auth/logout") {

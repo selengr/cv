@@ -7,14 +7,16 @@ import type Customer from "@/models/customer";
 import type Address from "@/models/address";
 import type ShippingMethod from "@/models/shipping";
 import type ReturnRequest from "@/models/returnRequest";
+import type ShopSettings from "@/models/shopSettings";
 import { seedShippingMethods } from "@/helpers/shipping";
+import { defaultShopSettings } from "@/helpers/shopSettings";
 import { productStock } from "@/helpers/variants";
 import type { StockAlert } from "@/helpers/stockAlerts";
 import { STOCK_ALERT_THRESHOLD } from "@/helpers/stockAlerts";
 import type { OrderNotification } from "@/helpers/notifications";
 
 const DATA_VERSION_KEY = "shopy_data_v";
-const DATA_VERSION = "13";
+const DATA_VERSION = "14";
 const USERS_KEY = "shopy_users";
 const PRODUCTS_KEY = "shopy_products";
 const ORDERS_KEY = "shopy_orders";
@@ -26,6 +28,7 @@ const CUSTOMERS_KEY = "shopy_customers";
 const ADDRESSES_KEY = "shopy_addresses";
 const SHIPPING_KEY = "shopy_shipping_methods";
 const RETURNS_KEY = "shopy_returns";
+const SETTINGS_KEY = "shopy_shop_settings";
 const CUSTOMER_SESSION_KEY = "shopy_customer_session";
 const CUSTOMER_OTP_KEY = "shopy_customer_otp";
 const SESSION_KEY = "shopy_session";
@@ -505,6 +508,7 @@ function ensureSeed() {
   writeJson(ADDRESSES_KEY, []);
   writeJson(SHIPPING_KEY, seedShippingMethods());
   writeJson(RETURNS_KEY, seedReturns());
+  writeJson(SETTINGS_KEY, defaultShopSettings());
   const users = readJson<StoredUser[]>(USERS_KEY, []);
   if (users.length === 0) writeJson(USERS_KEY, seedUsers());
   localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
@@ -666,6 +670,21 @@ export function getReturns(): ReturnRequest[] {
 
 export function saveReturns(items: ReturnRequest[]) {
   writeJson(RETURNS_KEY, items);
+}
+
+export function getShopSettings(): ShopSettings {
+  ensureSeed();
+  const settings = readJson<ShopSettings | null>(SETTINGS_KEY, null);
+  if (!settings || !settings.name?.trim()) {
+    const seeded = defaultShopSettings();
+    writeJson(SETTINGS_KEY, seeded);
+    return seeded;
+  }
+  return settings;
+}
+
+export function saveShopSettings(settings: ShopSettings) {
+  writeJson(SETTINGS_KEY, settings);
 }
 
 export function getCustomerSession(): CustomerSession | null {
